@@ -1,0 +1,39 @@
+import React from "react";
+import { Pin, Maximize2, MoreHorizontal } from "lucide-react";
+
+export const Header: React.FC = () => {
+  return (
+    <header className="deck-header">
+      <div className="deck-header-brand">
+        <span className="deck-brand-dot" aria-hidden="true" />
+        <h1 className="deck-title">CommandDeck</h1>
+      </div>
+      <div className="deck-header-actions">
+        <button
+          type="button"
+          className="deck-icon-btn"
+          title="置顶窗口 (Pin)"
+          aria-label="Pin window"
+        >
+          <Pin size={15} strokeWidth={1.75} />
+        </button>
+        <button
+          type="button"
+          className="deck-icon-btn"
+          title="窗口模式 (Window Mode)"
+          aria-label="Window mode"
+        >
+          <Maximize2 size={15} strokeWidth={1.75} />
+        </button>
+        <button
+          type="button"
+          className="deck-icon-btn"
+          title="更多选项 (More)"
+          aria-label="More options"
+        >
+          <MoreHorizontal size={15} strokeWidth={1.75} />
+        </button>
+      </div>
+    </header>
+  );
+};

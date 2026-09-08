@@ -1,37 +1,624 @@
+/* ==========================================================================
+   CommandDeck Design System - Warm Claude-Inspired Aesthetic
+   ========================================================================== */
+
 :root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 400;
+  /* Color Palette */
+  --bg-app: #FAF8F5;
+  --bg-surface: #FFFFFF;
+  --bg-surface-subtle: #F5F2EC;
+  --bg-hover: #F0ECE4;
+  --bg-active: #EAE5DC;
 
-  color: #0f0f0f;
-  background-color: #f6f6f6;
+  /* Accent (Muted Terracotta / Warm Amber) */
+  --accent-primary: #C96442;
+  --accent-hover: #B85635;
+  --accent-soft-bg: #FBF2EC;
+  --accent-soft-border: #F0D5C7;
+  --accent-text: #B44E2C;
 
-  font-synthesis: none;
+  /* Text & Hierarchies */
+  --text-main: #2B2724;
+  --text-secondary: #746D65;
+  --text-tertiary: #9E968D;
+  --text-disabled: #C2BBB2;
+
+  /* Status Colors */
+  --status-completed: #4E7356;
+  --status-completed-bg: #EFF5F0;
+  --status-in-progress: #C96442;
+  --status-upcoming: #9E968D;
+
+  /* Borders & Dividers */
+  --border-subtle: #EBE6DC;
+  --border-medium: #DDD7CB;
+  --border-focus: #C96442;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(43, 39, 36, 0.03), 0 1px 3px rgba(43, 39, 36, 0.02);
+  --shadow-card: 0 2px 5px rgba(43, 39, 36, 0.04), 0 1px 2px rgba(43, 39, 36, 0.03);
+  --shadow-hover: 0 4px 10px rgba(43, 39, 36, 0.06), 0 2px 4px rgba(43, 39, 36, 0.04);
+
+  /* Geometry */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+
+  /* Font */
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  font-family: var(--font-family);
+  font-size: 13.5px;
+  line-height: 1.5;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
+  user-select: none;
 }
 
-.container {
-  min-height: 100vh;
-  margin: 0;
-  padding: 0 24px;
+/* --------------------------------------------------------------------------
+   App Container & Scroll Area
+   -------------------------------------------------------------------------- */
+.deck-app-container {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  text-align: center;
+  height: 100vh;
+  width: 100%;
+  background-color: var(--bg-app);
+  position: relative;
+  overflow: hidden;
 }
 
-h1 {
-  margin: 0;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color: #f6f6f6;
-    background-color: #2f2f2f;
+@media (min-width: 520px) {
+  .deck-app-container {
+    max-width: 450px;
+    margin: 0 auto;
+    border-left: 1px solid var(--border-subtle);
+    border-right: 1px solid var(--border-subtle);
+    box-shadow: 0 0 20px rgba(43, 39, 36, 0.04);
   }
+}
 
+.deck-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 14px 16px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Custom Minimalist Scrollbar */
+.deck-scroll-area::-webkit-scrollbar {
+  width: 5px;
+}
+
+.deck-scroll-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.deck-scroll-area::-webkit-scrollbar-thumb {
+  background: #DFD8CE;
+  border-radius: 4px;
+}
+
+.deck-scroll-area::-webkit-scrollbar-thumb:hover {
+  background: #C8C0B4;
+}
+
+/* --------------------------------------------------------------------------
+   Header
+   -------------------------------------------------------------------------- */
+.deck-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 16px 11px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  background-color: var(--bg-app);
+  z-index: 10;
+}
+
+.deck-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.deck-brand-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--accent-primary);
+  display: inline-block;
+}
+
+.deck-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-main);
+}
+
+.deck-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.deck-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.deck-icon-btn:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-main);
+}
+
+.deck-icon-btn:active {
+  background-color: var(--bg-active);
+}
+
+/* --------------------------------------------------------------------------
+   Section Common
+   -------------------------------------------------------------------------- */
+.deck-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.deck-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2px;
+}
+
+.deck-section-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.deck-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+}
+
+.deck-section-count {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  background-color: var(--bg-surface-subtle);
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+
+/* Subtle NOW pulse indicator */
+.deck-pulse-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--accent-primary);
+  display: inline-block;
+  box-shadow: 0 0 0 2px var(--accent-soft-border);
+}
+
+/* --------------------------------------------------------------------------
+   GOALS Section (Flat rows)
+   -------------------------------------------------------------------------- */
+.deck-goals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.deck-goal-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.deck-goal-row:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--border-medium);
+}
+
+.deck-goal-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-primary);
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+.deck-goal-text {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-main);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+/* --------------------------------------------------------------------------
+   NOW Section (Active Task Cards)
+   -------------------------------------------------------------------------- */
+.deck-now-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.deck-now-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.15s ease;
+}
+
+.deck-now-card:hover {
+  border-color: #D3CBBF;
+  box-shadow: var(--shadow-hover);
+}
+
+.deck-now-card.is-expanded {
+  border-color: #D3CBBF;
+}
+
+.deck-now-card-header {
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+  background-color: transparent;
+  transition: background-color 0.15s ease;
+}
+
+.deck-now-card-header:hover {
+  background-color: #FAF9F6;
+}
+
+.deck-now-card-main-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.deck-now-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.deck-goal-tag {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background-color: var(--bg-surface-subtle);
+  padding: 1px 7px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border-subtle);
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deck-now-badge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--accent-text);
+  background-color: var(--accent-soft-bg);
+  border: 1px solid var(--accent-soft-border);
+  padding: 1px 5px;
+  border-radius: var(--radius-xs);
+}
+
+.deck-now-task-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+  line-height: 1.35;
+  margin-top: 2px;
+}
+
+.deck-now-summary {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  margin-top: 2px;
+}
+
+.deck-expand-trigger {
+  color: var(--text-tertiary);
+  margin-top: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+}
+
+.deck-now-card-header:hover .deck-expand-trigger {
+  color: var(--text-main);
+}
+
+/* Expanded Card Content */
+.deck-now-details {
+  padding: 0 14px 14px 14px;
+  border-top: 1px dashed var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  margin-top: 2px;
+  background-color: #FDFCFB;
+}
+
+.deck-stage-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.deck-stage-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.deck-stage-icon.completed {
+  color: var(--status-completed);
+}
+
+.deck-stage-icon.in-progress {
+  color: var(--status-in-progress);
+}
+
+.deck-stage-icon.upcoming {
+  color: var(--status-upcoming);
+}
+
+.deck-checklist {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-left: 6px;
+}
+
+.deck-checklist-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.deck-checklist-item.completed {
+  color: var(--text-secondary);
+}
+
+.deck-check-bullet {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--status-completed);
+  width: 14px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.deck-checklist-item.in-progress {
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+.deck-in-progress-bullet {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--accent-primary);
+  flex-shrink: 0;
+  margin-left: 4px;
+  margin-right: 4px;
+}
+
+.deck-checklist-item.upcoming {
+  color: var(--text-tertiary);
+}
+
+.deck-upcoming-bullet {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  border: 1px solid var(--text-tertiary);
+  flex-shrink: 0;
+  margin-left: 4px;
+  margin-right: 4px;
+}
+
+/* next_action Box */
+.deck-next-action-box {
+  background-color: var(--accent-soft-bg);
+  border: 1px solid var(--accent-soft-border);
+  border-radius: var(--radius-sm);
+  padding: 9px 11px;
+  margin-top: 4px;
+}
+
+.deck-next-action-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--accent-text);
+  margin-bottom: 3px;
+}
+
+.deck-next-action-icon {
+  flex-shrink: 0;
+}
+
+.deck-next-action-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.deck-next-action-text {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-main);
+  line-height: 1.4;
+}
+
+/* --------------------------------------------------------------------------
+   NEXT & DONE Sections (Compact Flat Rows)
+   -------------------------------------------------------------------------- */
+.deck-compact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.deck-compact-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 7px 10px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  cursor: default;
+}
+
+.deck-compact-row:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--border-medium);
+}
+
+.deck-row-marker {
+  color: var(--accent-primary);
+  opacity: 0.8;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.deck-compact-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.deck-task-name {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-main);
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.deck-goal-subtext {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  line-height: 1.3;
+}
+
+/* DONE specific styling */
+.deck-done-check {
+  color: var(--status-completed);
+  margin-top: 3px;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.deck-task-name.done-text {
+  color: var(--text-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   Footer / New Task Button
+   -------------------------------------------------------------------------- */
+.deck-footer {
+  padding: 10px 16px;
+  border-top: 1px solid var(--border-subtle);
+  background-color: var(--bg-app);
+  z-index: 10;
+}
+
+.deck-new-task-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background-color: var(--bg-surface);
+  border: 1px dashed var(--border-medium);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.deck-new-task-btn:hover {
+  background-color: var(--bg-surface-subtle);
+  border-color: var(--accent-primary);
+  color: var(--accent-text);
+  border-style: solid;
+}
+
+.deck-new-task-btn:active {
+  background-color: var(--bg-hover);
 }
