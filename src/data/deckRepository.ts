@@ -48,6 +48,11 @@ export async function listActiveGoals(): Promise<Goal[]> {
     "SELECT id, title, status, created_at, updated_at FROM goals WHERE status = $1 ORDER BY updated_at DESC", ["active"]);
   return rows.map(toGoal);
 }
+export async function listSelectableGoals(): Promise<Goal[]> {
+  const rows = await (await getDatabase()).select<GoalRow[]>(
+    "SELECT id, title, status, created_at, updated_at FROM goals WHERE status IN ($1, $2) ORDER BY updated_at DESC", ["active", "future"]);
+  return rows.map(toGoal);
+}
 
 export async function listNowTasks(): Promise<TaskDetails[]> {
   const rows = await (await getDatabase()).select<TaskRow[]>(`${taskSelect} WHERE tasks.status = $1 ORDER BY tasks.updated_at DESC`, ["active"]);

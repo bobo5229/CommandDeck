@@ -4,10 +4,10 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 
 export const Header: React.FC = () => {
   return (
-    <header className="deck-header" data-tauri-drag-region="deep">
-      <div className="deck-header-brand">
-        <span className="deck-brand-dot" aria-hidden="true" />
-        <h1 className="deck-title">CommandDeck</h1>
+    <header className="deck-header" data-tauri-drag-region>
+      <div className="deck-header-brand" data-tauri-drag-region>
+        <span className="deck-brand-dot" aria-hidden="true" data-tauri-drag-region />
+        <h1 className="deck-title" data-tauri-drag-region>CommandDeck</h1>
       </div>
       <div
         className="deck-header-actions"

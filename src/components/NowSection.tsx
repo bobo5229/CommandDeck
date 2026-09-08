@@ -6,14 +6,31 @@ import {
   Clock,
   Circle,
   ArrowRight,
+  MoreHorizontal,
 } from "lucide-react";
-import { TaskDetails } from "../types/deck";
+import { ProgressItem, ProgressItemStatus, TaskDetails } from "../types/deck";
+import { TaskMenu } from "./TaskMenu";
 
 interface NowSectionProps {
   tasks: TaskDetails[];
+  onEdit: (task: TaskDetails["task"]) => void;
+  onStatus: (id: string, status: import("../types/deck").TaskStatus) => Promise<void>;
+  onProgressCreate: (taskId: string, content: string, status: ProgressItemStatus) => Promise<void>;
+  onProgressUpdate: (id: string, content: string, status: ProgressItemStatus) => Promise<void>;
+  onProgressDelete: (id: string) => Promise<void>;
 }
 
-export const NowSection: React.FC<NowSectionProps> = ({ tasks }) => {
+const StageGroup: React.FC<{ label: string; icon: React.ReactNode; status: ProgressItemStatus; taskId: string; items: ProgressItem[]; onCreate: NowSectionProps["onProgressCreate"]; onUpdate: NowSectionProps["onProgressUpdate"]; onDelete: NowSectionProps["onProgressDelete"] }> = ({ label, icon, status, taskId, items, onCreate, onUpdate, onDelete }) => {
+  const [adding, setAdding] = useState(false); const [value, setValue] = useState(""); const [editing, setEditing] = useState<string | null>(null); const [draft, setDraft] = useState(""); const [menu, setMenu] = useState<string | null>(null); const [busy, setBusy] = useState(false); const [error, setError] = useState("");
+  const run = async (action: () => Promise<void>, done?: () => void) => { setBusy(true); setError(""); try { await action(); done?.(); } catch { setError("保存失败，请重试。"); } finally { setBusy(false); } };
+  return <div className="deck-stage-group"><div className="deck-stage-label">{icon}<span>{label}</span><button className="deck-text-btn" type="button" onClick={() => setAdding(!adding)}>+ Add item</button></div>
+    <ul className="deck-checklist">{items.map((item) => <li key={item.id} className={`deck-checklist-item ${status}`}>
+      {status === "completed" ? <span className="deck-check-bullet">✓</span> : status === "active" ? <span className="deck-in-progress-bullet" /> : <span className="deck-upcoming-bullet" />}
+      {editing === item.id ? <><input className="deck-progress-input" value={draft} onChange={(e) => setDraft(e.target.value)} /><button disabled={busy || !draft.trim()} onClick={() => void run(() => onUpdate(item.id, draft.trim(), item.status), () => setEditing(null))}>Save</button><button disabled={busy} onClick={() => setEditing(null)}>Cancel</button></> : <><span>{item.content}</span><span className="deck-menu-wrap"><button className="deck-item-menu-btn" onClick={() => setMenu(menu === item.id ? null : item.id)} aria-label="Progress item actions"><MoreHorizontal size={14} /></button>{menu === item.id && <span className="deck-menu"><button onClick={() => { setDraft(item.content); setEditing(item.id); setMenu(null); }}>Edit</button>{item.status !== "completed" && <button disabled={busy} onClick={() => void run(() => onUpdate(item.id, item.content, "completed"), () => setMenu(null))}>Mark completed</button>}{item.status !== "active" && <button disabled={busy} onClick={() => void run(() => onUpdate(item.id, item.content, "active"), () => setMenu(null))}>Mark active</button>}{item.status !== "future" && <button disabled={busy} onClick={() => void run(() => onUpdate(item.id, item.content, "future"), () => setMenu(null))}>Move to future</button>}<button disabled={busy} onClick={() => { if (window.confirm("Delete this progress item?")) void run(() => onDelete(item.id), () => setMenu(null)); }}>Delete</button></span>}</span></>}</li>)}</ul>
+    {adding && <div className="deck-inline-form"><input className="deck-progress-input" value={value} onChange={(e) => setValue(e.target.value)} placeholder="Add progress item" /><button disabled={busy || !value.trim()} onClick={() => void run(() => onCreate(taskId, value.trim(), status), () => { setValue(""); setAdding(false); })}>Add</button><button disabled={busy} onClick={() => setAdding(false)}>Cancel</button></div>}{error && <p className="deck-form-error">{error}</p>}</div>;
+};
+
+export const NowSection: React.FC<NowSectionProps> = ({ tasks, onEdit, onStatus, onProgressCreate, onProgressUpdate, onProgressDelete }) => {
   // 维护卡片的展开状态映射
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
@@ -80,63 +97,18 @@ export const NowSection: React.FC<NowSectionProps> = ({ tasks }) => {
                     <ChevronRight size={17} className="deck-expand-icon" />
                   )}
                 </div>
+                <TaskMenu status={task.task.status} onEdit={() => onEdit(task.task)} onStatus={(status) => onStatus(task.task.id, status)} />
               </div>
 
               {isExpanded && (
                 <div className="deck-now-details">
-                  {/* 已完成 */}
-                  {completedItems.length > 0 && (
-                    <div className="deck-stage-group">
-                      <div className="deck-stage-label">
-                        <CheckCircle2 size={13} className="deck-stage-icon completed" />
-                        <span>已完成</span>
-                      </div>
-                      <ul className="deck-checklist">
-                        {completedItems.map((item) => (
-                          <li key={item.id} className="deck-checklist-item completed">
-                            <span className="deck-check-bullet">✓</span>
-                            <span>{item.content}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  <StageGroup label="已完成" icon={<CheckCircle2 size={13} className="deck-stage-icon completed" />} status="completed" taskId={task.task.id} items={completedItems} onCreate={onProgressCreate} onUpdate={onProgressUpdate} onDelete={onProgressDelete} />
 
                   {/* 正在推进 */}
-                  {inProgressItems.length > 0 && (
-                    <div className="deck-stage-group">
-                      <div className="deck-stage-label">
-                        <Clock size={13} className="deck-stage-icon in-progress" />
-                        <span>正在推进</span>
-                      </div>
-                      <ul className="deck-checklist">
-                        {inProgressItems.map((item) => (
-                          <li key={item.id} className="deck-checklist-item in-progress">
-                            <span className="deck-in-progress-bullet" />
-                            <span>{item.content}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  <StageGroup label="正在推进" icon={<Clock size={13} className="deck-stage-icon in-progress" />} status="active" taskId={task.task.id} items={inProgressItems} onCreate={onProgressCreate} onUpdate={onProgressUpdate} onDelete={onProgressDelete} />
 
                   {/* 未来 */}
-                  {upcomingItems.length > 0 && (
-                    <div className="deck-stage-group">
-                      <div className="deck-stage-label">
-                        <Circle size={13} className="deck-stage-icon upcoming" />
-                        <span>未来</span>
-                      </div>
-                      <ul className="deck-checklist">
-                        {upcomingItems.map((item) => (
-                          <li key={item.id} className="deck-checklist-item upcoming">
-                            <span className="deck-upcoming-bullet" />
-                            <span>{item.content}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  <StageGroup label="未来" icon={<Circle size={13} className="deck-stage-icon upcoming" />} status="future" taskId={task.task.id} items={upcomingItems} onCreate={onProgressCreate} onUpdate={onProgressUpdate} onDelete={onProgressDelete} />
 
                   {/* Next Action */}
                   {task.task.nextAction && (
