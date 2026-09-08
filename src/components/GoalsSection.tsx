@@ -14,6 +14,7 @@ export const GoalsSection: React.FC<GoalsSectionProps> = ({ goals }) => {
         <span className="deck-section-count">{goals.length}</span>
       </div>
       <div className="deck-goals-list">
+        {goals.length === 0 && <p className="deck-empty-state">暂无进行中的 Goal</p>}
         {goals.map((goal) => (
           <div key={goal.id} className="deck-goal-row">
             <span className="deck-goal-icon-wrap" aria-hidden="true">

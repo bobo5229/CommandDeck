@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "./App.css";
 import { Header } from "./components/Header";
 import { GoalsSection } from "./components/GoalsSection";
@@ -6,22 +6,23 @@ import { NowSection } from "./components/NowSection";
 import { NextSection } from "./components/NextSection";
 import { DoneSection } from "./components/DoneSection";
 import { NewTaskButton } from "./components/NewTaskButton";
-import {
-  MOCK_GOALS,
-  MOCK_NOW_TASKS,
-  MOCK_NEXT_TASKS,
-  MOCK_DONE_TASKS,
-} from "./mock/mockData";
+import { listActiveGoals, listNextTasks, listNowTasks, listRecentDoneTasks } from "./data/deckRepository";
+import { seedDevelopmentData } from "./mock/mockData";
+import type { Goal, TaskDetails, TaskWithGoal } from "./types/deck";
 
 export const App: React.FC = () => {
+  const [state, setState] = useState<{ goals: Goal[]; now: TaskDetails[]; next: TaskWithGoal[]; done: TaskWithGoal[] }>({ goals: [], now: [], next: [], done: [] });
+  const [error, setError] = useState(false);
+  useEffect(() => { void (async () => { try { await seedDevelopmentData(); const [goals, now, next, done] = await Promise.all([listActiveGoals(), listNowTasks(), listNextTasks(), listRecentDoneTasks()]); setState({ goals, now, next, done }); } catch (reason) { console.error("Failed to load CommandDeck data", reason); setError(true); } })(); }, []);
   return (
     <div className="deck-app-container">
       <Header />
       <main className="deck-scroll-area">
-        <GoalsSection goals={MOCK_GOALS} />
-        <NowSection tasks={MOCK_NOW_TASKS} />
-        <NextSection tasks={MOCK_NEXT_TASKS} />
-        <DoneSection tasks={MOCK_DONE_TASKS} />
+        {error && <p className="deck-empty-state">无法加载本地数据。</p>}
+        <GoalsSection goals={state.goals} />
+        <NowSection tasks={state.now} />
+        <NextSection tasks={state.next} />
+        <DoneSection tasks={state.done} />
       </main>
       <NewTaskButton />
     </div>

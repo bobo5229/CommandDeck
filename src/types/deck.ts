@@ -1,29 +1,62 @@
+export type GoalStatus = "future" | "active" | "completed" | "archived";
+export type TaskStatus = "future" | "active" | "completed" | "skipped";
+export type ProgressItemStatus = "completed" | "active" | "future";
+
 export interface Goal {
   id: string;
   title: string;
-  status?: "active" | "future" | "completed";
+  status: GoalStatus;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface ActiveTask {
+export interface Task {
   id: string;
+  goalId: string | null;
   title: string;
-  goalLabel: string;
-  currentSummary: string;
-  nextAction?: string;
-  completedItems?: string[];
-  inProgressItems?: string[];
-  upcomingItems?: string[];
-  defaultExpanded?: boolean;
+  status: TaskStatus;
+  currentSummary: string | null;
+  nextAction: string | null;
+  createdAt: string;
+  updatedAt: string;
+  completedAt: string | null;
 }
 
-export interface NextTask {
+export interface ProgressItem {
   id: string;
-  title: string;
-  goalLabel: string;
+  taskId: string;
+  content: string;
+  status: ProgressItemStatus;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface DoneTask {
-  id: string;
+export interface TaskWithGoal {
+  task: Task;
+  goal: Goal | null;
+}
+
+export interface TaskDetails extends TaskWithGoal {
+  progressItems: ProgressItem[];
+}
+
+export interface CreateGoalInput {
   title: string;
-  goalLabel?: string;
+  status?: GoalStatus;
+}
+
+export interface CreateTaskInput {
+  title: string;
+  goalId?: string | null;
+  status?: TaskStatus;
+  currentSummary?: string | null;
+  nextAction?: string | null;
+}
+
+export interface CreateProgressItemInput {
+  taskId: string;
+  content: string;
+  status?: ProgressItemStatus;
+  sortOrder?: number;
 }

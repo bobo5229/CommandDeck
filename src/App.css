@@ -229,6 +229,14 @@ html, body {
   border-radius: 10px;
 }
 
+.deck-empty-state {
+  padding: 7px 10px;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  background-color: var(--bg-surface-subtle);
+  border-radius: var(--radius-xs);
+}
+
 /* Subtle NOW pulse indicator */
 .deck-pulse-indicator {
   width: 6px;

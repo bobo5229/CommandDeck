@@ -7,18 +7,18 @@ import {
   Circle,
   ArrowRight,
 } from "lucide-react";
-import { ActiveTask } from "../types/deck";
+import { TaskDetails } from "../types/deck";
 
 interface NowSectionProps {
-  tasks: ActiveTask[];
+  tasks: TaskDetails[];
 }
 
 export const NowSection: React.FC<NowSectionProps> = ({ tasks }) => {
   // 维护卡片的展开状态映射
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
-    tasks.forEach((t) => {
-      initial[t.id] = t.defaultExpanded ?? false;
+    tasks.forEach((t, index) => {
+      initial[t.task.id] = index === 0;
     });
     return initial;
   });
@@ -41,32 +41,36 @@ export const NowSection: React.FC<NowSectionProps> = ({ tasks }) => {
       </div>
 
       <div className="deck-now-list">
+        {tasks.length === 0 && <p className="deck-empty-state">暂无正在推进的 Task</p>}
         {tasks.map((task) => {
-          const isExpanded = !!expandedIds[task.id];
+          const isExpanded = !!expandedIds[task.task.id];
+          const completedItems = task.progressItems.filter((item) => item.status === "completed");
+          const inProgressItems = task.progressItems.filter((item) => item.status === "active");
+          const upcomingItems = task.progressItems.filter((item) => item.status === "future");
           return (
             <article
-              key={task.id}
+              key={task.task.id}
               className={`deck-now-card ${isExpanded ? "is-expanded" : "is-collapsed"}`}
             >
               <div
                 className="deck-now-card-header"
-                onClick={() => toggleExpand(task.id)}
+                onClick={() => toggleExpand(task.task.id)}
                 role="button"
                 tabIndex={0}
                 aria-expanded={isExpanded}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    toggleExpand(task.id);
+                    toggleExpand(task.task.id);
                   }
                 }}
               >
                 <div className="deck-now-card-main-info">
                   <div className="deck-now-card-meta">
-                    <span className="deck-goal-tag">{task.goalLabel}</span>
+                    {task.goal && <span className="deck-goal-tag">{task.goal.title}</span>}
                   </div>
-                  <h3 className="deck-now-task-title">{task.title}</h3>
-                  <p className="deck-now-summary">{task.currentSummary}</p>
+                  <h3 className="deck-now-task-title">{task.task.title}</h3>
+                  {task.task.currentSummary && <p className="deck-now-summary">{task.task.currentSummary}</p>}
                 </div>
 
                 <div className="deck-expand-trigger" aria-hidden="true">
@@ -81,17 +85,17 @@ export const NowSection: React.FC<NowSectionProps> = ({ tasks }) => {
               {isExpanded && (
                 <div className="deck-now-details">
                   {/* 已完成 */}
-                  {task.completedItems && task.completedItems.length > 0 && (
+                  {completedItems.length > 0 && (
                     <div className="deck-stage-group">
                       <div className="deck-stage-label">
                         <CheckCircle2 size={13} className="deck-stage-icon completed" />
                         <span>已完成</span>
                       </div>
                       <ul className="deck-checklist">
-                        {task.completedItems.map((item, idx) => (
-                          <li key={idx} className="deck-checklist-item completed">
+                        {completedItems.map((item) => (
+                          <li key={item.id} className="deck-checklist-item completed">
                             <span className="deck-check-bullet">✓</span>
-                            <span>{item}</span>
+                            <span>{item.content}</span>
                           </li>
                         ))}
                       </ul>
@@ -99,17 +103,17 @@ export const NowSection: React.FC<NowSectionProps> = ({ tasks }) => {
                   )}
 
                   {/* 正在推进 */}
-                  {task.inProgressItems && task.inProgressItems.length > 0 && (
+                  {inProgressItems.length > 0 && (
                     <div className="deck-stage-group">
                       <div className="deck-stage-label">
                         <Clock size={13} className="deck-stage-icon in-progress" />
                         <span>正在推进</span>
                       </div>
                       <ul className="deck-checklist">
-                        {task.inProgressItems.map((item, idx) => (
-                          <li key={idx} className="deck-checklist-item in-progress">
+                        {inProgressItems.map((item) => (
+                          <li key={item.id} className="deck-checklist-item in-progress">
                             <span className="deck-in-progress-bullet" />
-                            <span>{item}</span>
+                            <span>{item.content}</span>
                           </li>
                         ))}
                       </ul>
@@ -117,17 +121,17 @@ export const NowSection: React.FC<NowSectionProps> = ({ tasks }) => {
                   )}
 
                   {/* 未来 */}
-                  {task.upcomingItems && task.upcomingItems.length > 0 && (
+                  {upcomingItems.length > 0 && (
                     <div className="deck-stage-group">
                       <div className="deck-stage-label">
                         <Circle size={13} className="deck-stage-icon upcoming" />
                         <span>未来</span>
                       </div>
                       <ul className="deck-checklist">
-                        {task.upcomingItems.map((item, idx) => (
-                          <li key={idx} className="deck-checklist-item upcoming">
+                        {upcomingItems.map((item) => (
+                          <li key={item.id} className="deck-checklist-item upcoming">
                             <span className="deck-upcoming-bullet" />
-                            <span>{item}</span>
+                            <span>{item.content}</span>
                           </li>
                         ))}
                       </ul>
@@ -135,13 +139,13 @@ export const NowSection: React.FC<NowSectionProps> = ({ tasks }) => {
                   )}
 
                   {/* Next Action */}
-                  {task.nextAction && (
+                  {task.task.nextAction && (
                     <div className="deck-next-action-box">
                       <div className="deck-next-action-header">
                         <ArrowRight size={13} className="deck-next-action-icon" />
                         <span className="deck-next-action-label">next_action</span>
                       </div>
-                      <p className="deck-next-action-text">{task.nextAction}</p>
+                      <p className="deck-next-action-text">{task.task.nextAction}</p>
                     </div>
                   )}
                 </div>
