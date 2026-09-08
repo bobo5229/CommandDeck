@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { ChevronDown, X } from "lucide-react";
 import type { Goal, Task, TaskStatus } from "../types/deck";
 
 interface Props {
@@ -19,17 +20,125 @@ export const TaskEditorModal: React.FC<Props> = ({ task, goals, onClose, onSave,
   const [showGoalCreate, setShowGoalCreate] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  useEffect(() => { const handler = (event: KeyboardEvent) => event.key === "Escape" && onClose(); window.addEventListener("keydown", handler); return () => window.removeEventListener("keydown", handler); }, [onClose]);
-  const submit = async (event: React.FormEvent) => { event.preventDefault(); if (!title.trim()) { setError("Title is required."); return; } setSaving(true); setError(""); try { await onSave({ title: title.trim(), goalId: goalId || null, ...(task ? {} : { status }), currentSummary: summary.trim() || null, nextAction: nextAction.trim() || null }); onClose(); } catch (reason) { console.error("Failed to save task", reason); setError("保存失败，请重试。"); } finally { setSaving(false); } };
-  const createGoal = async () => { if (!newGoalTitle.trim()) return; setSaving(true); try { const goal = await onCreateGoal(newGoalTitle.trim()); setGoalId(goal.id); setNewGoalTitle(""); setShowGoalCreate(false); } catch (reason) { console.error("Failed to create goal", reason); setError("Goal 创建失败，请重试。"); } finally { setSaving(false); } };
-  return <div className="deck-modal-backdrop" role="presentation" onMouseDown={onClose}><section className="deck-modal" role="dialog" aria-modal="true" aria-label={task ? "Edit task" : "New task"} onMouseDown={(event) => event.stopPropagation()}><form onSubmit={submit}>
-    <div className="deck-modal-header"><h2>{task ? "Edit Task" : "New Task"}</h2><button type="button" className="deck-icon-btn" onClick={onClose} aria-label="Close editor">×</button></div>
-    <label>Title<input autoFocus value={title} onChange={(event) => setTitle(event.target.value)} disabled={saving} /></label>
-    <label>Goal<select value={goalId} onChange={(event) => setGoalId(event.target.value)} disabled={saving}><option value="">No Goal</option>{goals.map((goal) => <option key={goal.id} value={goal.id}>{goal.title}</option>)}</select></label>
-    <button type="button" className="deck-text-btn" onClick={() => setShowGoalCreate(!showGoalCreate)}>+ New Goal</button>
-    {showGoalCreate && <div className="deck-inline-form"><input aria-label="New goal title" value={newGoalTitle} onChange={(event) => setNewGoalTitle(event.target.value)} placeholder="Goal title" /><button type="button" onClick={() => void createGoal()} disabled={saving || !newGoalTitle.trim()}>Add</button></div>}
-    {!task && <fieldset><legend>Status</legend><label><input type="radio" checked={status === "future"} onChange={() => setStatus("future")} /> Future</label><label><input type="radio" checked={status === "active"} onChange={() => setStatus("active")} /> Active</label></fieldset>}
-    <label>Current summary<textarea value={summary} onChange={(event) => setSummary(event.target.value)} disabled={saving} /></label><label>Next action<textarea value={nextAction} onChange={(event) => setNextAction(event.target.value)} disabled={saving} /></label>
-    {error && <p className="deck-form-error">{error}</p>}<div className="deck-modal-actions"><button type="button" onClick={onClose} disabled={saving}>Cancel</button><button className="deck-primary-btn" disabled={saving}>{saving ? "Saving…" : task ? "Save" : "Create"}</button></div>
-  </form></section></div>;
+
+  useEffect(() => {
+    const handler = (event: KeyboardEvent) => event.key === "Escape" && onClose();
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
+
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!title.trim()) {
+      setError("Title is required.");
+      return;
+    }
+
+    setSaving(true);
+    setError("");
+    try {
+      await onSave({
+        title: title.trim(),
+        goalId: goalId || null,
+        ...(task ? {} : { status }),
+        currentSummary: summary.trim() || null,
+        nextAction: nextAction.trim() || null,
+      });
+      onClose();
+    } catch (reason) {
+      console.error("Failed to save task", reason);
+      setError("保存失败，请重试。");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const createGoal = async () => {
+    if (!newGoalTitle.trim()) return;
+
+    setSaving(true);
+    try {
+      const goal = await onCreateGoal(newGoalTitle.trim());
+      setGoalId(goal.id);
+      setNewGoalTitle("");
+      setShowGoalCreate(false);
+    } catch (reason) {
+      console.error("Failed to create goal", reason);
+      setError("Goal 创建失败，请重试。");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="deck-modal-backdrop" role="presentation" onMouseDown={onClose}>
+      <section className="deck-modal" role="dialog" aria-modal="true" aria-label={task ? "Edit task" : "New task"} onMouseDown={(event) => event.stopPropagation()}>
+        <form onSubmit={submit}>
+          <div className="deck-modal-header">
+            <h2>{task ? "Edit Task" : "New Task"}</h2>
+            <button type="button" className="deck-icon-btn" onClick={onClose} aria-label="Close editor" disabled={saving}>
+              <X size={16} strokeWidth={1.8} />
+            </button>
+          </div>
+
+          <label className="deck-field">
+            <span>Title</span>
+            <input autoFocus value={title} onChange={(event) => setTitle(event.target.value)} disabled={saving} />
+          </label>
+
+          <label className="deck-field">
+            <span>Goal</span>
+            <span className="deck-select-control">
+              <select value={goalId} onChange={(event) => setGoalId(event.target.value)} disabled={saving}>
+                <option value="">No Goal</option>
+                {goals.map((goal) => <option key={goal.id} value={goal.id}>{goal.title}</option>)}
+              </select>
+              <ChevronDown size={15} aria-hidden="true" />
+            </span>
+          </label>
+
+          <button type="button" className="deck-text-btn deck-new-goal-btn" onClick={() => setShowGoalCreate(!showGoalCreate)} disabled={saving}>
+            + New Goal
+          </button>
+          {showGoalCreate && (
+            <div className="deck-inline-form">
+              <input aria-label="New goal title" value={newGoalTitle} onChange={(event) => setNewGoalTitle(event.target.value)} placeholder="Goal title" disabled={saving} />
+              <button type="button" className="deck-inline-add-btn" onClick={() => void createGoal()} disabled={saving || !newGoalTitle.trim()}>Add</button>
+            </div>
+          )}
+
+          {!task && (
+            <fieldset className="deck-status-control">
+              <legend>Status</legend>
+              <div className="deck-segmented-control">
+                <label>
+                  <input type="radio" name="task-status" value="future" checked={status === "future"} onChange={() => setStatus("future")} disabled={saving} />
+                  <span>Future</span>
+                </label>
+                <label>
+                  <input type="radio" name="task-status" value="active" checked={status === "active"} onChange={() => setStatus("active")} disabled={saving} />
+                  <span>Active</span>
+                </label>
+              </div>
+            </fieldset>
+          )}
+
+          <label className="deck-field">
+            <span>Current summary</span>
+            <textarea rows={3} value={summary} onChange={(event) => setSummary(event.target.value)} disabled={saving} />
+          </label>
+          <label className="deck-field">
+            <span>Next action</span>
+            <textarea rows={3} value={nextAction} onChange={(event) => setNextAction(event.target.value)} disabled={saving} />
+          </label>
+
+          {error && <p className="deck-form-error">{error}</p>}
+          <div className="deck-modal-actions">
+            <button type="button" className="deck-secondary-btn" onClick={onClose} disabled={saving}>Cancel</button>
+            <button type="submit" className="deck-primary-btn" disabled={saving}>{saving ? "Saving…" : task ? "Save Changes" : "Create Task"}</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  );
 };
