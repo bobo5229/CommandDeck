@@ -185,6 +185,11 @@ html, body {
   background-color: var(--bg-active);
 }
 
+.deck-close-btn:hover {
+  color: var(--accent-text);
+  background-color: var(--accent-soft-bg);
+}
+
 /* --------------------------------------------------------------------------
    Section Common
    -------------------------------------------------------------------------- */
@@ -222,6 +227,14 @@ html, body {
   background-color: var(--bg-surface-subtle);
   padding: 1px 6px;
   border-radius: 10px;
+}
+
+.deck-empty-state {
+  padding: 7px 10px;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  background-color: var(--bg-surface-subtle);
+  border-radius: var(--radius-xs);
 }
 
 /* Subtle NOW pulse indicator */
