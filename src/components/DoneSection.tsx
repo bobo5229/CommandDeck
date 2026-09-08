@@ -1,12 +1,14 @@
 import React from "react";
 import { Check } from "lucide-react";
 import { TaskWithGoal } from "../types/deck";
+import { TaskMenu } from "./TaskMenu";
 
 interface DoneSectionProps {
   tasks: TaskWithGoal[];
+  onStatus: (id: string, status: import("../types/deck").TaskStatus) => Promise<void>;
 }
 
-export const DoneSection: React.FC<DoneSectionProps> = ({ tasks }) => {
+export const DoneSection: React.FC<DoneSectionProps> = ({ tasks, onStatus }) => {
   return (
     <section className="deck-section deck-section-done" aria-label="Completed Tasks">
       <div className="deck-section-header">
@@ -26,6 +28,7 @@ export const DoneSection: React.FC<DoneSectionProps> = ({ tasks }) => {
                 <span className="deck-goal-subtext">Goal: {task.goal.title}</span>
               )}
             </div>
+            <TaskMenu status={task.task.status} canEdit={false} onStatus={(status) => onStatus(task.task.id, status)} />
           </div>
         ))}
       </div>

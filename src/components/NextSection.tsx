@@ -1,12 +1,15 @@
 import React from "react";
 import { CircleDot } from "lucide-react";
 import { TaskWithGoal } from "../types/deck";
+import { TaskMenu } from "./TaskMenu";
 
 interface NextSectionProps {
   tasks: TaskWithGoal[];
+  onEdit: (task: TaskWithGoal["task"]) => void;
+  onStatus: (id: string, status: import("../types/deck").TaskStatus) => Promise<void>;
 }
 
-export const NextSection: React.FC<NextSectionProps> = ({ tasks }) => {
+export const NextSection: React.FC<NextSectionProps> = ({ tasks, onEdit, onStatus }) => {
   return (
     <section className="deck-section deck-section-next" aria-label="Next Tasks">
       <div className="deck-section-header">
@@ -24,6 +27,7 @@ export const NextSection: React.FC<NextSectionProps> = ({ tasks }) => {
               <span className="deck-task-name">{task.task.title}</span>
               {task.goal && <span className="deck-goal-subtext">Goal: {task.goal.title}</span>}
             </div>
+            <TaskMenu status={task.task.status} onEdit={() => onEdit(task.task)} onStatus={(status) => onStatus(task.task.id, status)} />
           </div>
         ))}
       </div>
