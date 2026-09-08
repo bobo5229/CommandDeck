@@ -1,5 +1,6 @@
 import React from "react";
-import { Pin, Maximize2, MoreHorizontal } from "lucide-react";
+import { Pin, Maximize2, MoreHorizontal, X } from "lucide-react";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 
 export const Header: React.FC = () => {
   return (
@@ -36,6 +37,15 @@ export const Header: React.FC = () => {
           aria-label="More options"
         >
           <MoreHorizontal size={15} strokeWidth={1.75} />
+        </button>
+        <button
+          type="button"
+          className="deck-icon-btn deck-close-btn"
+          title="关闭窗口 (Close)"
+          aria-label="Close window"
+          onClick={() => void getCurrentWindow().close()}
+        >
+          <X size={16} strokeWidth={1.9} />
         </button>
       </div>
     </header>

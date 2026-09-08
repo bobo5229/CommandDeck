@@ -185,6 +185,11 @@ html, body {
   background-color: var(--bg-active);
 }
 
+.deck-close-btn:hover {
+  color: var(--accent-text);
+  background-color: var(--accent-soft-bg);
+}
+
 /* --------------------------------------------------------------------------
    Section Common
    -------------------------------------------------------------------------- */
