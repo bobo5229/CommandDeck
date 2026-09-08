@@ -113,6 +113,12 @@ export async function reorderProgressItems(taskId: string, orderedIds: string[])
   await (await getDatabase()).execute(`UPDATE progress_items SET sort_order = CASE id ${branches} END, updated_at = $${orderedIds.length + 2} WHERE task_id = $1 AND id IN (${ids})`, [taskId, ...orderedIds, timestamp()]);
 }
 export async function isDatabaseEmpty(): Promise<boolean> {
-  const rows = await (await getDatabase()).select<Array<{ count: number }>>("SELECT COUNT(*) AS count FROM goals");
-  return rows[0]?.count === 0;
+  const rows = await (await getDatabase()).select<Array<{ has_goals: number; has_tasks: number; has_progress_items: number }>>(
+    `SELECT
+      EXISTS(SELECT 1 FROM goals) AS has_goals,
+      EXISTS(SELECT 1 FROM tasks) AS has_tasks,
+      EXISTS(SELECT 1 FROM progress_items) AS has_progress_items`,
+  );
+  const state = rows[0];
+  return !state || (!state.has_goals && !state.has_tasks && !state.has_progress_items);
 }
