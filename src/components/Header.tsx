@@ -3,12 +3,16 @@ import { Pin, Maximize2, MoreHorizontal } from "lucide-react";
 
 export const Header: React.FC = () => {
   return (
-    <header className="deck-header">
+    <header className="deck-header" data-tauri-drag-region="deep">
       <div className="deck-header-brand">
         <span className="deck-brand-dot" aria-hidden="true" />
         <h1 className="deck-title">CommandDeck</h1>
       </div>
-      <div className="deck-header-actions">
+      <div
+        className="deck-header-actions"
+        aria-label="窗口选项"
+        data-tauri-drag-region="false"
+      >
         <button
           type="button"
           className="deck-icon-btn"

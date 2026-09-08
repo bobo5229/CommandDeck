@@ -64,7 +64,6 @@ export const NowSection: React.FC<NowSectionProps> = ({ tasks }) => {
                 <div className="deck-now-card-main-info">
                   <div className="deck-now-card-meta">
                     <span className="deck-goal-tag">{task.goalLabel}</span>
-                    <span className="deck-now-badge">Active</span>
                   </div>
                   <h3 className="deck-now-task-title">{task.title}</h3>
                   <p className="deck-now-summary">{task.currentSummary}</p>
