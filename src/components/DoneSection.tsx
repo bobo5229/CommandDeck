@@ -28,7 +28,7 @@ export const DoneSection: React.FC<DoneSectionProps> = ({ tasks, onStatus }) => 
                 <span className="deck-goal-subtext">Goal: {task.goal.title}</span>
               )}
             </div>
-            <TaskMenu status={task.task.status} canEdit={false} onStatus={(status) => onStatus(task.task.id, status)} />
+            <TaskMenu status={task.task.status} canEdit={false} activeOnly onStatus={(status) => onStatus(task.task.id, status)} />
           </div>
         ))}
       </div>

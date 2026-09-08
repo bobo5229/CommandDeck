@@ -5,14 +5,14 @@ interface Props {
   task?: Task;
   goals: Goal[];
   onClose: () => void;
-  onSave: (values: { title: string; goalId: string | null; status: TaskStatus; currentSummary: string | null; nextAction: string | null }) => Promise<void>;
+  onSave: (values: { title: string; goalId: string | null; status?: TaskStatus; currentSummary: string | null; nextAction: string | null }) => Promise<void>;
   onCreateGoal: (title: string) => Promise<Goal>;
 }
 
 export const TaskEditorModal: React.FC<Props> = ({ task, goals, onClose, onSave, onCreateGoal }) => {
   const [title, setTitle] = useState(task?.title ?? "");
   const [goalId, setGoalId] = useState(task?.goalId ?? "");
-  const [status, setStatus] = useState<TaskStatus>(task?.status === "completed" || task?.status === "skipped" ? "future" : task?.status ?? "future");
+  const [status, setStatus] = useState<TaskStatus>("future");
   const [summary, setSummary] = useState(task?.currentSummary ?? "");
   const [nextAction, setNextAction] = useState(task?.nextAction ?? "");
   const [newGoalTitle, setNewGoalTitle] = useState("");
@@ -20,7 +20,7 @@ export const TaskEditorModal: React.FC<Props> = ({ task, goals, onClose, onSave,
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   useEffect(() => { const handler = (event: KeyboardEvent) => event.key === "Escape" && onClose(); window.addEventListener("keydown", handler); return () => window.removeEventListener("keydown", handler); }, [onClose]);
-  const submit = async (event: React.FormEvent) => { event.preventDefault(); if (!title.trim()) { setError("Title is required."); return; } setSaving(true); setError(""); try { await onSave({ title: title.trim(), goalId: goalId || null, status, currentSummary: summary.trim() || null, nextAction: nextAction.trim() || null }); onClose(); } catch (reason) { console.error("Failed to save task", reason); setError("保存失败，请重试。"); } finally { setSaving(false); } };
+  const submit = async (event: React.FormEvent) => { event.preventDefault(); if (!title.trim()) { setError("Title is required."); return; } setSaving(true); setError(""); try { await onSave({ title: title.trim(), goalId: goalId || null, ...(task ? {} : { status }), currentSummary: summary.trim() || null, nextAction: nextAction.trim() || null }); onClose(); } catch (reason) { console.error("Failed to save task", reason); setError("保存失败，请重试。"); } finally { setSaving(false); } };
   const createGoal = async () => { if (!newGoalTitle.trim()) return; setSaving(true); try { const goal = await onCreateGoal(newGoalTitle.trim()); setGoalId(goal.id); setNewGoalTitle(""); setShowGoalCreate(false); } catch (reason) { console.error("Failed to create goal", reason); setError("Goal 创建失败，请重试。"); } finally { setSaving(false); } };
   return <div className="deck-modal-backdrop" role="presentation" onMouseDown={onClose}><section className="deck-modal" role="dialog" aria-modal="true" aria-label={task ? "Edit task" : "New task"} onMouseDown={(event) => event.stopPropagation()}><form onSubmit={submit}>
     <div className="deck-modal-header"><h2>{task ? "Edit Task" : "New Task"}</h2><button type="button" className="deck-icon-btn" onClick={onClose} aria-label="Close editor">×</button></div>
