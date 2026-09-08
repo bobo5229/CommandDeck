@@ -31,6 +31,7 @@ const StageGroup: React.FC<{ label: string; icon: React.ReactNode; status: Progr
 };
 
 export const NowSection: React.FC<NowSectionProps> = ({ tasks, onEdit, onStatus, onProgressCreate, onProgressUpdate, onProgressDelete }) => {
+  const countLabel = `${tasks.length} ${tasks.length === 1 ? "active task" : "active tasks"}`;
   // 维护卡片的展开状态映射
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
@@ -54,7 +55,7 @@ export const NowSection: React.FC<NowSectionProps> = ({ tasks, onEdit, onStatus,
           <span className="deck-pulse-indicator" aria-hidden="true" />
           <span className="deck-section-title">NOW</span>
         </div>
-        <span className="deck-section-count">{tasks.length}</span>
+        <span className="deck-section-count">{countLabel}</span>
       </div>
 
       <div className="deck-now-list">

@@ -10,11 +10,13 @@ interface NextSectionProps {
 }
 
 export const NextSection: React.FC<NextSectionProps> = ({ tasks, onEdit, onStatus }) => {
+  const countLabel = `${tasks.length} ${tasks.length === 1 ? "task" : "tasks"}`;
+
   return (
     <section className="deck-section deck-section-next" aria-label="Next Tasks">
       <div className="deck-section-header">
         <span className="deck-section-title">NEXT</span>
-        <span className="deck-section-count">{tasks.length}</span>
+        <span className="deck-section-count">{countLabel}</span>
       </div>
       <div className="deck-compact-list">
         {tasks.length === 0 && <p className="deck-empty-state">暂无下一步 Task</p>}
