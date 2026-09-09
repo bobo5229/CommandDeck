@@ -1,9 +1,16 @@
 import { createGoal, createProgressItem, createTask, isDatabaseEmpty } from "../data/deckRepository";
 
 const seedFailureMarker = "commanddeck.development-seed-failed";
+let developmentSeedPromise: Promise<void> | undefined;
 
-export async function seedDevelopmentData(): Promise<void> {
-  if (!import.meta.env.DEV || import.meta.env.VITE_COMMANDDECK_SEED !== "1") return;
+export function seedDevelopmentData(): Promise<void> {
+  if (!import.meta.env.DEV || import.meta.env.VITE_COMMANDDECK_SEED !== "1") return Promise.resolve();
+
+  developmentSeedPromise ??= seedDevelopmentDataOnce();
+  return developmentSeedPromise;
+}
+
+async function seedDevelopmentDataOnce(): Promise<void> {
 
   const empty = await isDatabaseEmpty();
   if (localStorage.getItem(seedFailureMarker)) {
