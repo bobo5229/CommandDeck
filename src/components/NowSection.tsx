@@ -14,6 +14,8 @@ import { TaskMenu } from "./TaskMenu";
 
 interface NowSectionProps {
   tasks: TaskDetails[];
+  hasOtherTasks: boolean;
+  onCreateTask: () => void;
   onEdit: (task: TaskDetails["task"]) => void;
   onStatus: (id: string, status: import("../types/deck").TaskStatus) => Promise<void>;
   onProgressCreate: (taskId: string, content: string, status: ProgressItemStatus) => Promise<void>;
@@ -31,7 +33,7 @@ const StageGroup: React.FC<{ label: string; icon: React.ReactNode; status: Progr
     {adding && <div className="deck-inline-form"><input className="deck-progress-input" value={value} onChange={(e) => setValue(e.target.value)} placeholder="Add progress item" /><button disabled={busy || !value.trim()} onClick={() => void run(() => onCreate(taskId, value.trim(), status), () => { setValue(""); setAdding(false); })}>Add</button><button disabled={busy} onClick={() => setAdding(false)}>Cancel</button></div>}{error && <p className="deck-form-error">{error}</p>}</div>;
 };
 
-export const NowSection: React.FC<NowSectionProps> = ({ tasks, onEdit, onStatus, onProgressCreate, onProgressUpdate, onProgressDelete }) => {
+export const NowSection: React.FC<NowSectionProps> = ({ tasks, hasOtherTasks, onCreateTask, onEdit, onStatus, onProgressCreate, onProgressUpdate, onProgressDelete }) => {
   const countLabel = `${tasks.length} ${tasks.length === 1 ? "active task" : "active tasks"}`;
   // 维护卡片的展开状态映射
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>(() => {
@@ -59,7 +61,14 @@ export const NowSection: React.FC<NowSectionProps> = ({ tasks, onEdit, onStatus,
       </div>
 
       <div className="deck-now-list">
-        {tasks.length === 0 && <p className="deck-empty-state">暂无正在推进的 Task</p>}
+        {tasks.length === 0 && (
+          <div className="deck-now-empty-state">
+            <p className="deck-empty-state">{hasOtherTasks ? "暂无正在推进的 Task" : "还没有 Task"}</p>
+            <button className="deck-text-btn deck-now-empty-action" type="button" onClick={onCreateTask}>
+              {hasOtherTasks ? "Create a task" : "Create your first task"}
+            </button>
+          </div>
+        )}
         {tasks.map((task) => {
           const isExpanded = !!expandedIds[task.task.id];
           const completedItems = task.progressItems.filter((item) => item.status === "completed");
