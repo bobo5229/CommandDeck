@@ -7,15 +7,15 @@ import { NextSection } from "./components/NextSection";
 import { DoneSection } from "./components/DoneSection";
 import { NewTaskButton } from "./components/NewTaskButton";
 import { TaskEditorModal } from "./components/TaskEditorModal";
-import { changeTaskStatus, createGoal, createProgressItem, createTask, deleteProgressItem, listActiveGoals, listNextTasks, listNowTasks, listRecentDoneTasks, listSelectableGoals, updateProgressItem, updateTask } from "./data/deckRepository";
+import { changeTaskStatus, createGoal, createProgressItem, createTask, deleteProgressItem, hasAnyTasks, listActiveGoals, listNextTasks, listNowTasks, listRecentDoneTasks, listSelectableGoals, updateProgressItem, updateTask } from "./data/deckRepository";
 import { seedDevelopmentData } from "./mock/mockData";
 import type { Goal, TaskDetails, TaskWithGoal } from "./types/deck";
 
 export const App: React.FC = () => {
-  const [state, setState] = useState<{ goals: Goal[]; selectableGoals: Goal[]; now: TaskDetails[]; next: TaskWithGoal[]; done: TaskWithGoal[] }>({ goals: [], selectableGoals: [], now: [], next: [], done: [] });
+  const [state, setState] = useState<{ goals: Goal[]; selectableGoals: Goal[]; now: TaskDetails[]; next: TaskWithGoal[]; done: TaskWithGoal[]; hasTasks: boolean }>({ goals: [], selectableGoals: [], now: [], next: [], done: [], hasTasks: false });
   const [error, setError] = useState(false);
   const [editing, setEditing] = useState<TaskDetails["task"] | undefined>(); const [editorOpen, setEditorOpen] = useState(false);
-  const reloadDeckState = useCallback(async () => { const [goals, selectableGoals, now, next, done] = await Promise.all([listActiveGoals(), listSelectableGoals(), listNowTasks(), listNextTasks(), listRecentDoneTasks()]); setState({ goals, selectableGoals, now, next, done }); }, []);
+  const reloadDeckState = useCallback(async () => { const [goals, selectableGoals, now, next, done, hasTasks] = await Promise.all([listActiveGoals(), listSelectableGoals(), listNowTasks(), listNextTasks(), listRecentDoneTasks(), hasAnyTasks()]); setState({ goals, selectableGoals, now, next, done, hasTasks }); }, []);
   useEffect(() => { void (async () => { try { await seedDevelopmentData(); await reloadDeckState(); } catch (reason) { console.error("Failed to load CommandDeck data", reason); setError(true); } })(); }, [reloadDeckState]);
   const status = async (id: string, value: import("./types/deck").TaskStatus) => { await changeTaskStatus(id, value); await reloadDeckState(); };
   const progressCreate = async (taskId: string, content: string, status: import("./types/deck").ProgressItemStatus) => { try { await createProgressItem({ taskId, content, status }); await reloadDeckState(); } catch (reason) { console.error("Failed to create progress item", reason); throw reason; } };
@@ -28,7 +28,7 @@ export const App: React.FC = () => {
       <main className="deck-scroll-area">
         {error && <p className="deck-empty-state">无法加载本地数据。</p>}
         <GoalsSection goals={state.goals} />
-        <NowSection tasks={state.now} hasOtherTasks={state.next.length > 0 || state.done.length > 0} onCreateTask={openNewTaskEditor} onEdit={(task) => { setEditing(task); setEditorOpen(true); }} onStatus={status} onProgressCreate={progressCreate} onProgressUpdate={progressUpdate} onProgressDelete={progressDelete} />
+        <NowSection tasks={state.now} hasAnyTasks={state.hasTasks} onCreateTask={openNewTaskEditor} onEdit={(task) => { setEditing(task); setEditorOpen(true); }} onStatus={status} onProgressCreate={progressCreate} onProgressUpdate={progressUpdate} onProgressDelete={progressDelete} />
         <NextSection tasks={state.next} onEdit={(task) => { setEditing(task); setEditorOpen(true); }} onStatus={status} />
         <DoneSection tasks={state.done} onStatus={status} />
       </main>
