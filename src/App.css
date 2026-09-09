@@ -304,24 +304,47 @@ html, body {
   background: transparent;
 }
 
+.deck-now-empty-state {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  padding: 2px 0;
+}
+
+.deck-now-empty-state .deck-empty-state {
+  padding: 0;
+}
+
+.deck-now-empty-action {
+  margin: 0;
+  padding: 2px 3px;
+  font-size: 11.5px;
+}
+
+.deck-section-next .deck-empty-state {
+  padding: 6px 6px;
+  color: #8B8379;
+}
+
 /* --------------------------------------------------------------------------
    GOALS Section (Compact pills)
    -------------------------------------------------------------------------- */
 .deck-goals-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .deck-goal-pill {
   display: inline-flex;
   align-items: center;
-  min-height: 31px;
+  min-height: 28px;
   max-width: 100%;
-  padding: 5px 11px;
+  padding: 4px 9px;
   overflow: hidden;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 500;
   line-height: 1.3;
   text-overflow: ellipsis;
@@ -678,14 +701,14 @@ html, body {
 .deck-compact-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .deck-compact-row {
   display: flex;
   align-items: flex-start;
   gap: 9px;
-  padding: 8px 8px;
+  padding: 6px 6px;
   background-color: transparent;
   border: 1px solid transparent;
   border-radius: var(--radius-xs);
@@ -694,8 +717,8 @@ html, body {
 }
 
 .deck-compact-row:hover {
-  background-color: var(--bg-surface-subtle);
-  border-color: var(--border-subtle);
+  background-color: #F8F5F0;
+  border-color: transparent;
 }
 
 .deck-row-marker {
@@ -722,9 +745,17 @@ html, body {
 }
 
 .deck-goal-subtext {
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--text-tertiary);
   line-height: 1.3;
+}
+
+.deck-section-done .deck-section-summary:hover .deck-section-title {
+  color: var(--text-main);
+}
+
+.deck-section-done .deck-section-count {
+  color: var(--text-tertiary);
 }
 
 /* DONE specific styling */
@@ -736,7 +767,7 @@ html, body {
 }
 
 .deck-task-name.done-text {
-  color: var(--text-secondary);
+  color: #7C837B;
 }
 
 /* --------------------------------------------------------------------------

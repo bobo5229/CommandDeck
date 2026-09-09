@@ -127,3 +127,10 @@ export async function isDatabaseEmpty(): Promise<boolean> {
   const state = rows[0];
   return !state || (!state.has_goals && !state.has_tasks && !state.has_progress_items);
 }
+
+export async function hasAnyTasks(): Promise<boolean> {
+  const rows = await (await getDatabase()).select<Array<{ has_tasks: number }>>(
+    "SELECT EXISTS(SELECT 1 FROM tasks) AS has_tasks",
+  );
+  return Boolean(rows[0]?.has_tasks);
+}
