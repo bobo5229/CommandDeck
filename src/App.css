@@ -304,16 +304,6 @@ html, body {
   background: transparent;
 }
 
-/* Subtle NOW pulse indicator */
-.deck-pulse-indicator {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: var(--accent-primary);
-  display: inline-block;
-  box-shadow: 0 0 0 2px var(--accent-soft-border);
-}
-
 /* --------------------------------------------------------------------------
    GOALS Section (Compact pills)
    -------------------------------------------------------------------------- */
@@ -353,29 +343,38 @@ html, body {
 .deck-now-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .deck-now-card {
+  position: relative;
   background-color: var(--bg-surface);
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(43, 39, 36, 0.045), 0 1px 2px rgba(43, 39, 36, 0.025);
   overflow: hidden;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.15s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.deck-now-card::before {
+  position: absolute;
+  inset: 15px auto 15px 0;
+  width: 2px;
+  border-radius: 0 2px 2px 0;
+  background: var(--accent-primary);
+  content: "";
 }
 
 .deck-now-card:hover {
-  border-color: #D3CBBF;
-  box-shadow: var(--shadow-hover);
+  border-color: #DED6CA;
 }
 
 .deck-now-card.is-expanded {
-  border-color: #D3CBBF;
+  border-color: #DED6CA;
 }
 
 .deck-now-card-header {
-  padding: 12px 14px;
+  padding: 16px 16px 15px 18px;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -383,11 +382,16 @@ html, body {
   cursor: pointer;
   user-select: none;
   background-color: transparent;
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .deck-now-card-header:hover {
-  background-color: #FAF9F6;
+  background-color: #FFFDFC;
+}
+
+.deck-now-card-header:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px rgba(201, 100, 66, 0.26);
 }
 
 .deck-now-card-main-info {
@@ -395,27 +399,29 @@ html, body {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0;
 }
 
 .deck-now-card-meta {
   display: flex;
   align-items: center;
-  gap: 7px;
+  min-height: 17px;
+  margin-bottom: 7px;
 }
 
 .deck-goal-tag {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--accent-text);
-  background-color: var(--accent-soft-bg);
-  padding: 2px 7px;
-  border-radius: 7px;
-  border: 1px solid #F5E2D8;
   max-width: 220px;
+  padding: 2px 6px;
   overflow: hidden;
+  color: #A6644D;
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 1.3;
   text-overflow: ellipsis;
   white-space: nowrap;
+  background-color: #FCF4EF;
+  border: 0;
+  border-radius: 6px;
 }
 
 .deck-now-badge {
@@ -430,23 +436,27 @@ html, body {
 }
 
 .deck-now-task-title {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 650;
   color: var(--text-main);
-  line-height: 1.35;
-  margin-top: 2px;
+  line-height: 1.25;
+  letter-spacing: -0.012em;
 }
 
 .deck-now-summary {
+  display: -webkit-box;
+  margin-top: 7px;
+  overflow: hidden;
   font-size: 12.5px;
   color: var(--text-secondary);
-  line-height: 1.45;
-  margin-top: 2px;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .deck-expand-trigger {
   color: var(--text-tertiary);
-  margin-top: 3px;
+  margin-top: 2px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -459,28 +469,52 @@ html, body {
 
 /* Expanded Card Content */
 .deck-now-details {
-  padding: 0 14px 11px 14px;
-  border-top: 1px dashed var(--border-subtle);
+  padding: 0 16px 17px 18px;
+  border-top: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 1px;
-  background-color: #FDFCFB;
+  gap: 14px;
+  margin-top: 0;
+  background-color: #FFFDFC;
 }
 
 .deck-stage-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-top: 7px;
+  gap: 7px;
+}
+
+.deck-stage-group:first-child {
+  margin-top: 1px;
 }
 
 .deck-stage-label {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 11.5px;
+  color: var(--text-secondary);
+  font-size: 10.5px;
   font-weight: 600;
+  line-height: 1.3;
+}
+
+.deck-add-progress-btn {
+  margin: 0 0 0 auto;
+  padding: 2px 4px;
+  color: var(--text-tertiary);
+  font-size: 10.5px;
+  font-weight: 500;
+}
+
+.deck-add-progress-btn:hover {
+  color: var(--accent-text);
+}
+
+.deck-stage-group--active .deck-stage-label {
+  color: #A85536;
+}
+
+.deck-stage-group--future .deck-stage-label {
   color: var(--text-secondary);
 }
 
@@ -500,28 +534,30 @@ html, body {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding-left: 4px;
+  gap: 6px;
+  padding-left: 1px;
 }
 
 .deck-checklist-item {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   gap: 8px;
+  min-width: 0;
   font-size: 12.5px;
-  line-height: 1.32;
+  line-height: 1.42;
 }
 
 .deck-checklist-item.completed {
-  color: var(--text-secondary);
+  color: #78827A;
 }
 
 .deck-check-bullet {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--status-completed);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 14px;
-  text-align: center;
+  height: 18px;
+  color: var(--status-completed);
   flex-shrink: 0;
 }
 
@@ -536,8 +572,7 @@ html, body {
   border-radius: 50%;
   background-color: var(--accent-primary);
   flex-shrink: 0;
-  margin-left: 4px;
-  margin-right: 4px;
+  margin: 6px 4px 0;
 }
 
 .deck-checklist-item.upcoming {
@@ -545,22 +580,55 @@ html, body {
 }
 
 .deck-upcoming-bullet {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   border: 1px solid var(--text-tertiary);
   flex-shrink: 0;
-  margin-left: 4px;
-  margin-right: 4px;
+  margin: 6px 4px 0;
+}
+
+.deck-progress-content {
+  min-width: 0;
+  flex: 1;
+  word-break: break-word;
+}
+
+.deck-item-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-xs);
+  color: var(--text-tertiary);
+  background: transparent;
+  cursor: pointer;
+  opacity: 0;
+  transition: background-color .15s ease, color .15s ease, opacity .15s ease;
+}
+
+.deck-checklist-item:hover .deck-item-menu-btn,
+.deck-checklist-item:focus-within .deck-item-menu-btn {
+  opacity: 1;
+}
+
+.deck-item-menu-btn:hover,
+.deck-item-menu-btn:focus-visible {
+  color: var(--text-main);
+  background: var(--bg-hover);
+  outline: none;
 }
 
 /* next_action Box */
 .deck-next-action-box {
-  background-color: var(--accent-soft-bg);
-  border: 1px solid var(--accent-soft-border);
-  border-radius: var(--radius-sm);
-  padding: 7px 10px;
-  margin-top: 2px;
+  margin-top: 1px;
+  padding: 10px 11px;
+  background-color: #FCF2EC;
+  border: 0;
+  border-radius: 10px;
 }
 
 .deck-next-action-header {
@@ -576,17 +644,32 @@ html, body {
 }
 
 .deck-next-action-label {
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: 0.055em;
 }
 
 .deck-next-action-text {
   font-size: 12.5px;
   font-weight: 500;
   color: var(--text-main);
-  line-height: 1.32;
+  line-height: 1.45;
+}
+
+@media (max-width: 390px) {
+  .deck-now-card-header {
+    padding-right: 13px;
+    padding-left: 16px;
+  }
+
+  .deck-now-details {
+    padding-right: 13px;
+    padding-left: 16px;
+  }
+
+  .deck-now-task-title {
+    font-size: 15px;
+  }
 }
 
 /* --------------------------------------------------------------------------

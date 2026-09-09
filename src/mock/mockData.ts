@@ -1,9 +1,16 @@
 import { createGoal, createProgressItem, createTask, isDatabaseEmpty } from "../data/deckRepository";
 
 const seedFailureMarker = "commanddeck.development-seed-failed";
+let developmentSeedPromise: Promise<void> | undefined;
 
-export async function seedDevelopmentData(): Promise<void> {
-  if (!import.meta.env.DEV || import.meta.env.VITE_COMMANDDECK_SEED !== "1") return;
+export function seedDevelopmentData(): Promise<void> {
+  if (!import.meta.env.DEV || import.meta.env.VITE_COMMANDDECK_SEED !== "1") return Promise.resolve();
+
+  developmentSeedPromise ??= seedDevelopmentDataOnce();
+  return developmentSeedPromise;
+}
+
+async function seedDevelopmentDataOnce(): Promise<void> {
 
   const empty = await isDatabaseEmpty();
   if (localStorage.getItem(seedFailureMarker)) {
@@ -18,17 +25,22 @@ export async function seedDevelopmentData(): Promise<void> {
 
   localStorage.setItem(seedFailureMarker, "1");
   try {
-    const proposal = await createGoal({ title: "完成项目建议书第一部分修改", status: "active" });
-    const auralis = await createGoal({ title: "Auralis", status: "active" });
-    const now = await createTask({ title: "修改 1.1.2", goalId: proposal.id, status: "active", currentSummary: "正在重新划分 1.1.2 / 1.1.4 职责", nextAction: "重新确定迁移后 1.1.2 的核心职责" });
+    const commandDeck = await createGoal({ title: "CommandDeck", status: "active" });
+    const now = await createTask({
+      title: "优化 CommandDeck UI",
+      goalId: commandDeck.id,
+      status: "active",
+      currentSummary: "正在将主界面调整为 Editorial Desktop Command Center",
+      nextAction: "检查 NOW Card 在 430px 窗口中的真实扫描体验",
+    });
     await Promise.all([
-      createProgressItem({ taskId: now.id, content: "理清导师意见", status: "completed", sortOrder: 0 }), createProgressItem({ taskId: now.id, content: "判断迁移内容", status: "completed", sortOrder: 1 }),
-      createProgressItem({ taskId: now.id, content: "补充技术核验", status: "active", sortOrder: 2 }), createProgressItem({ taskId: now.id, content: "重新划分章节职责", status: "active", sortOrder: 3 }),
-      createProgressItem({ taskId: now.id, content: "形成候选文字", status: "future", sortOrder: 4 }), createProgressItem({ taskId: now.id, content: "忠实度检查", status: "future", sortOrder: 5 }),
+      createProgressItem({ taskId: now.id, content: "Phase 1 视觉方向", status: "completed", sortOrder: 0 }),
+      createProgressItem({ taskId: now.id, content: "Phase 2 Editorial Shell", status: "completed", sortOrder: 1 }),
+      createProgressItem({ taskId: now.id, content: "NOW Card 视觉验收", status: "active", sortOrder: 2 }),
+      createProgressItem({ taskId: now.id, content: "ProgressItem 信息层级检查", status: "active", sortOrder: 3 }),
+      createProgressItem({ taskId: now.id, content: "NEXT / DONE 最终优化", status: "future", sortOrder: 4 }),
+      createProgressItem({ taskId: now.id, content: "整体密度校准", status: "future", sortOrder: 5 }),
     ]);
-    await createTask({ title: "AMDL Select V2", goalId: auralis.id, status: "active", currentSummary: "正在推进当前开发阶段", nextAction: "编写选择器单元测试用例" });
-    await createTask({ title: "补写 1.1.4", goalId: proposal.id });
-    await createTask({ title: "RoboPack 精读", status: "completed" });
     localStorage.removeItem(seedFailureMarker);
   } catch (error) {
     console.error("Development seed failed. The database may contain partial data; clear it before retrying.", error);
