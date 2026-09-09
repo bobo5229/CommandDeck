@@ -193,7 +193,7 @@ html, body {
 
 .deck-modal-backdrop { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 16px; background: rgba(43, 39, 36, .22); }
 .deck-modal { width: min(100%, 390px); max-height: calc(100vh - 32px); overflow: auto; padding: 16px; background: var(--bg-app); border: 1px solid var(--border-medium); border-radius: var(--radius-lg); box-shadow: 0 14px 32px rgba(43,39,36,.16); }
-.deck-modal-header, .deck-modal-actions { display:flex; align-items:center; justify-content:space-between; gap:8px; }.deck-modal h2 { font-size:15px; }.deck-modal label { display:flex; flex-direction:column; gap:4px; margin-top:10px; color:var(--text-secondary); font-size:11px; font-weight:600; }.deck-modal input, .deck-modal textarea, .deck-modal select { width:100%; padding:7px 8px; color:var(--text-main); font:inherit; background:var(--bg-surface); border:1px solid var(--border-medium); border-radius:var(--radius-xs); }.deck-modal textarea { min-height:54px; resize:vertical; }.deck-modal fieldset { display:flex; gap:12px; margin-top:10px; border:0; }.deck-modal fieldset label { flex-direction:row; align-items:center; margin:0; }.deck-inline-form { display:flex; gap:6px; margin-top:6px; }.deck-inline-form input { flex:1; }.deck-text-btn { margin-top:6px; border:0; background:transparent; color:var(--accent-text); font:inherit; cursor:pointer; }.deck-modal-actions { justify-content:flex-end; margin-top:16px; }.deck-modal-actions button, .deck-inline-form button { padding:7px 10px; border:1px solid var(--border-medium); border-radius:var(--radius-xs); background:var(--bg-surface); font:inherit; cursor:pointer; }.deck-primary-btn { color:#fff; background:var(--accent-primary)!important; border-color:var(--accent-primary)!important; }.deck-form-error { margin-top:8px; color:var(--accent-text); font-size:12px; }.deck-menu-wrap { position:relative; flex-shrink:0; }.deck-menu { position:absolute; right:0; top:30px; z-index:15; min-width:132px; padding:4px; background:var(--bg-surface); border:1px solid var(--border-medium); border-radius:var(--radius-sm); box-shadow:var(--shadow-hover); }.deck-menu button { display:block; width:100%; padding:6px 8px; border:0; border-radius:var(--radius-xs); background:transparent; text-align:left; color:var(--text-main); font:inherit; cursor:pointer; }.deck-menu button:hover { background:var(--bg-hover); }
+.deck-modal-header, .deck-modal-actions { display:flex; align-items:center; justify-content:space-between; gap:8px; }.deck-modal h2 { font-size:15px; }.deck-modal label { display:flex; flex-direction:column; gap:4px; margin-top:10px; color:var(--text-secondary); font-size:11px; font-weight:600; }.deck-modal input, .deck-modal textarea, .deck-modal select { width:100%; padding:7px 8px; color:var(--text-main); font:inherit; background:var(--bg-surface); border:1px solid var(--border-medium); border-radius:var(--radius-xs); }.deck-modal textarea { min-height:54px; resize:vertical; }.deck-modal fieldset { display:flex; gap:12px; margin-top:10px; border:0; }.deck-modal fieldset label { flex-direction:row; align-items:center; margin:0; }.deck-inline-form { display:flex; gap:6px; margin-top:6px; }.deck-inline-form input { flex:1; }.deck-text-btn { margin-top:6px; border:0; background:transparent; color:var(--accent-text); font:inherit; cursor:pointer; }.deck-modal-actions { justify-content:flex-end; margin-top:16px; }.deck-modal-actions button, .deck-inline-form button { padding:7px 10px; border:1px solid var(--border-medium); border-radius:var(--radius-xs); background:var(--bg-surface); font:inherit; cursor:pointer; }.deck-primary-btn { color:#fff; background:var(--accent-primary)!important; border-color:var(--accent-primary)!important; }.deck-form-error { margin-top:8px; color:var(--accent-text); font-size:12px; }
 
 /* Task editor controls */
 .deck-modal { padding: 18px; }
@@ -237,6 +237,112 @@ html, body {
 .deck-primary-btn:active:not(:disabled) { background: #A94D30 !important; border-color: #A94D30 !important; }
 .deck-modal-actions button:disabled, .deck-inline-add-btn:disabled { opacity: .55; cursor: not-allowed; }
 .deck-form-error { margin-top: 9px; color: var(--accent-text); font-size: 12px; }
+
+/* --------------------------------------------------------------------------
+   Desktop Menus (TaskMenu & ProgressItem menu)
+   Editorial Desktop Command Center interaction language
+   -------------------------------------------------------------------------- */
+.deck-menu-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.deck-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 25;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 136px;
+  padding: 3px;
+  background-color: #FFFEFC;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  box-shadow: 0 3px 10px rgba(43, 39, 36, .05), 0 1px 2px rgba(43, 39, 36, .03);
+}
+
+.deck-menu-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 28px;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  text-align: left;
+  color: var(--text-main);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease, transform .15s ease;
+}
+
+.deck-menu-item:hover:not(:disabled) {
+  background-color: var(--bg-hover);
+  color: var(--text-main);
+}
+
+.deck-menu-item:active:not(:disabled) {
+  background-color: var(--bg-active);
+  transform: translateY(1px);
+}
+
+.deck-menu-item:focus-visible {
+  outline: none;
+  background-color: var(--accent-soft-bg);
+  box-shadow: inset 0 0 0 1px rgba(201, 100, 66, .28);
+  color: var(--text-main);
+}
+
+.deck-menu-item:disabled {
+  color: var(--text-disabled);
+  opacity: .7;
+  cursor: not-allowed;
+}
+
+.deck-menu-item--destructive {
+  color: #9C4A3B;
+}
+
+.deck-menu-item--destructive:hover:not(:disabled) {
+  color: #873628;
+  background-color: #FAECE7;
+}
+
+.deck-menu-item--destructive:active:not(:disabled) {
+  color: #7B3023;
+  background-color: #F4DFD8;
+}
+
+.deck-menu-item--destructive:focus-visible {
+  outline: none;
+  background-color: #FAECE7;
+  box-shadow: inset 0 0 0 1px rgba(156, 74, 59, .28);
+  color: #873628;
+}
+
+.deck-menu-item--destructive:disabled {
+  color: var(--text-disabled);
+  opacity: .7;
+  cursor: not-allowed;
+  background: transparent;
+}
+
+/* MoreHorizontal Trigger & Parent Context Highlighting */
+.deck-icon-btn.is-open,
+.deck-icon-btn[aria-expanded="true"] {
+  background-color: var(--bg-hover);
+  color: var(--text-main);
+}
+
+.deck-compact-row:has([aria-expanded="true"]) {
+  background-color: var(--bg-hover);
+  border-color: #D6CFBF;
+}
 
 /* --------------------------------------------------------------------------
    Section Common
@@ -630,19 +736,41 @@ html, body {
   background: transparent;
   cursor: pointer;
   opacity: 0;
-  transition: background-color .15s ease, color .15s ease, opacity .15s ease;
+  transition: background-color .15s ease, color .15s ease, opacity .15s ease, transform .15s ease;
 }
 
 .deck-checklist-item:hover .deck-item-menu-btn,
-.deck-checklist-item:focus-within .deck-item-menu-btn {
+.deck-checklist-item:focus-within .deck-item-menu-btn,
+.deck-item-menu-btn.is-open,
+.deck-item-menu-btn[aria-expanded="true"] {
   opacity: 1;
 }
 
-.deck-item-menu-btn:hover,
-.deck-item-menu-btn:focus-visible {
+.deck-item-menu-btn:hover:not(:disabled) {
   color: var(--text-main);
-  background: var(--bg-hover);
+  background-color: var(--bg-hover);
+}
+
+.deck-item-menu-btn:active:not(:disabled) {
+  background-color: var(--bg-active);
+  transform: translateY(1px);
+}
+
+.deck-item-menu-btn:focus-visible {
   outline: none;
+  box-shadow: inset 0 0 0 1.5px rgba(201, 100, 66, .3);
+  opacity: 1;
+}
+
+.deck-item-menu-btn.is-open,
+.deck-item-menu-btn[aria-expanded="true"] {
+  color: var(--text-main);
+  background-color: var(--bg-hover);
+}
+
+.deck-checklist-item:has([aria-expanded="true"]) {
+  background-color: var(--bg-hover);
+  border-radius: var(--radius-xs);
 }
 
 /* next_action Box */

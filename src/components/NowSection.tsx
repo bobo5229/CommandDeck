@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   ChevronDown,
   ChevronRight,
@@ -23,17 +23,265 @@ interface NowSectionProps {
   onProgressDelete: (id: string) => Promise<void>;
 }
 
-const StageGroup: React.FC<{ label: string; icon: React.ReactNode; status: ProgressItemStatus; taskId: string; items: ProgressItem[]; onCreate: NowSectionProps["onProgressCreate"]; onUpdate: NowSectionProps["onProgressUpdate"]; onDelete: NowSectionProps["onProgressDelete"] }> = ({ label, icon, status, taskId, items, onCreate, onUpdate, onDelete }) => {
-  const [adding, setAdding] = useState(false); const [value, setValue] = useState(""); const [editing, setEditing] = useState<string | null>(null); const [draft, setDraft] = useState(""); const [menu, setMenu] = useState<string | null>(null); const [busy, setBusy] = useState(false); const [error, setError] = useState("");
-  const run = async (action: () => Promise<void>, done?: () => void) => { setBusy(true); setError(""); try { await action(); done?.(); } catch { setError("保存失败，请重试。"); } finally { setBusy(false); } };
-  return <div className={`deck-stage-group deck-stage-group--${status}`}><div className="deck-stage-label">{icon}<span>{label}</span><button className="deck-text-btn deck-add-progress-btn" type="button" onClick={() => setAdding(!adding)}>+ Add item</button></div>
-    <ul className="deck-checklist">{items.map((item) => <li key={item.id} className={`deck-checklist-item ${status}`}>
-      {status === "completed" ? <span className="deck-check-bullet" aria-hidden="true"><Check size={12} strokeWidth={2.4} /></span> : status === "active" ? <span className="deck-in-progress-bullet" aria-hidden="true" /> : <span className="deck-upcoming-bullet" aria-hidden="true" />}
-      {editing === item.id ? <><input className="deck-progress-input" value={draft} onChange={(e) => setDraft(e.target.value)} /><button disabled={busy || !draft.trim()} onClick={() => void run(() => onUpdate(item.id, draft.trim(), item.status), () => setEditing(null))}>Save</button><button disabled={busy} onClick={() => setEditing(null)}>Cancel</button></> : <><span className="deck-progress-content">{item.content}</span><span className="deck-menu-wrap"><button className="deck-item-menu-btn" onClick={() => setMenu(menu === item.id ? null : item.id)} aria-label="Progress item actions"><MoreHorizontal size={14} /></button>{menu === item.id && <span className="deck-menu"><button onClick={() => { setDraft(item.content); setEditing(item.id); setMenu(null); }}>Edit</button>{item.status !== "completed" && <button disabled={busy} onClick={() => void run(() => onUpdate(item.id, item.content, "completed"), () => setMenu(null))}>Mark completed</button>}{item.status !== "active" && <button disabled={busy} onClick={() => void run(() => onUpdate(item.id, item.content, "active"), () => setMenu(null))}>Mark active</button>}{item.status !== "future" && <button disabled={busy} onClick={() => void run(() => onUpdate(item.id, item.content, "future"), () => setMenu(null))}>Move to future</button>}<button disabled={busy} onClick={() => { if (window.confirm("Delete this progress item?")) void run(() => onDelete(item.id), () => setMenu(null)); }}>Delete</button></span>}</span></>}</li>)}</ul>
-    {adding && <div className="deck-inline-form"><input className="deck-progress-input" value={value} onChange={(e) => setValue(e.target.value)} placeholder="Add progress item" /><button disabled={busy || !value.trim()} onClick={() => void run(() => onCreate(taskId, value.trim(), status), () => { setValue(""); setAdding(false); })}>Add</button><button disabled={busy} onClick={() => setAdding(false)}>Cancel</button></div>}{error && <p className="deck-form-error">{error}</p>}</div>;
+const StageGroup: React.FC<{
+  label: string;
+  icon: React.ReactNode;
+  status: ProgressItemStatus;
+  taskId: string;
+  items: ProgressItem[];
+  onCreate: NowSectionProps["onProgressCreate"];
+  onUpdate: NowSectionProps["onProgressUpdate"];
+  onDelete: NowSectionProps["onProgressDelete"];
+}> = ({ label, icon, status, taskId, items, onCreate, onUpdate, onDelete }) => {
+  const [adding, setAdding] = useState(false);
+  const [value, setValue] = useState("");
+  const [editing, setEditing] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
+  const [menu, setMenu] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const menuWrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menu) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuWrapRef.current && !menuWrapRef.current.contains(event.target as Node)) {
+        setMenu(null);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMenu(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [menu]);
+
+  const run = async (action: () => Promise<void>, done?: () => void) => {
+    setBusy(true);
+    setError("");
+    try {
+      await action();
+      done?.();
+    } catch {
+      setError("保存失败，请重试。");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className={`deck-stage-group deck-stage-group--${status}`}>
+      <div className="deck-stage-label">
+        {icon}
+        <span>{label}</span>
+        <button
+          className="deck-text-btn deck-add-progress-btn"
+          type="button"
+          onClick={() => setAdding(!adding)}
+        >
+          + Add item
+        </button>
+      </div>
+      <ul className="deck-checklist">
+        {items.map((item) => (
+          <li key={item.id} className={`deck-checklist-item ${status}`}>
+            {status === "completed" ? (
+              <span className="deck-check-bullet" aria-hidden="true">
+                <Check size={12} strokeWidth={2.4} />
+              </span>
+            ) : status === "active" ? (
+              <span className="deck-in-progress-bullet" aria-hidden="true" />
+            ) : (
+              <span className="deck-upcoming-bullet" aria-hidden="true" />
+            )}
+            {editing === item.id ? (
+              <>
+                <input
+                  className="deck-progress-input"
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="deck-inline-confirm-btn"
+                  disabled={busy || !draft.trim()}
+                  onClick={() =>
+                    void run(
+                      () => onUpdate(item.id, draft.trim(), item.status),
+                      () => setEditing(null)
+                    )
+                  }
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  className="deck-inline-cancel-btn"
+                  disabled={busy}
+                  onClick={() => setEditing(null)}
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <>
+                <span className="deck-progress-content">{item.content}</span>
+                <div
+                  ref={menu === item.id ? menuWrapRef : undefined}
+                  className="deck-menu-wrap"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <button
+                    type="button"
+                    className={`deck-item-menu-btn ${menu === item.id ? "is-open" : ""}`}
+                    onClick={() => setMenu(menu === item.id ? null : item.id)}
+                    aria-label="Progress item actions"
+                    aria-haspopup="menu"
+                    aria-expanded={menu === item.id}
+                  >
+                    <MoreHorizontal size={14} />
+                  </button>
+                  {menu === item.id && (
+                    <div className="deck-menu" role="menu">
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="deck-menu-item"
+                        onClick={() => {
+                          setDraft(item.content);
+                          setEditing(item.id);
+                          setMenu(null);
+                        }}
+                      >
+                        Edit
+                      </button>
+                      {item.status !== "completed" && (
+                        <button
+                          type="button"
+                          role="menuitem"
+                          className="deck-menu-item"
+                          disabled={busy}
+                          onClick={() =>
+                            void run(
+                              () => onUpdate(item.id, item.content, "completed"),
+                              () => setMenu(null)
+                            )
+                          }
+                        >
+                          Mark completed
+                        </button>
+                      )}
+                      {item.status !== "active" && (
+                        <button
+                          type="button"
+                          role="menuitem"
+                          className="deck-menu-item"
+                          disabled={busy}
+                          onClick={() =>
+                            void run(
+                              () => onUpdate(item.id, item.content, "active"),
+                              () => setMenu(null)
+                            )
+                          }
+                        >
+                          Mark active
+                        </button>
+                      )}
+                      {item.status !== "future" && (
+                        <button
+                          type="button"
+                          role="menuitem"
+                          className="deck-menu-item"
+                          disabled={busy}
+                          onClick={() =>
+                            void run(
+                              () => onUpdate(item.id, item.content, "future"),
+                              () => setMenu(null)
+                            )
+                          }
+                        >
+                          Move to future
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="deck-menu-item deck-menu-item--destructive"
+                        disabled={busy}
+                        onClick={() => {
+                          if (window.confirm("Delete this progress item?")) {
+                            void run(
+                              () => onDelete(item.id),
+                              () => setMenu(null)
+                            );
+                          }
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </li>
+        ))}
+      </ul>
+      {adding && (
+        <div className="deck-inline-form">
+          <input
+            className="deck-progress-input"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder="Add progress item"
+          />
+          <button
+            type="button"
+            className="deck-inline-confirm-btn"
+            disabled={busy || !value.trim()}
+            onClick={() =>
+              void run(
+                () => onCreate(taskId, value.trim(), status),
+                () => {
+                  setValue("");
+                  setAdding(false);
+                }
+              )
+            }
+          >
+            Add
+          </button>
+          <button
+            type="button"
+            className="deck-inline-cancel-btn"
+            disabled={busy}
+            onClick={() => setAdding(false)}
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+      {error && <p className="deck-form-error">{error}</p>}
+    </div>
+  );
 };
 
-export const NowSection: React.FC<NowSectionProps> = ({ tasks, hasAnyTasks, onCreateTask, onEdit, onStatus, onProgressCreate, onProgressUpdate, onProgressDelete }) => {
+export const NowSection: React.FC<NowSectionProps> = ({
+  tasks,
+  hasAnyTasks,
+  onCreateTask,
+  onEdit,
+  onStatus,
+  onProgressCreate,
+  onProgressUpdate,
+  onProgressDelete,
+}) => {
   const countLabel = `${tasks.length} ${tasks.length === 1 ? "active task" : "active tasks"}`;
   // 维护卡片的展开状态映射
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>(() => {
@@ -53,8 +301,8 @@ export const NowSection: React.FC<NowSectionProps> = ({ tasks, hasAnyTasks, onCr
 
   return (
     <section className="deck-section deck-section-now" aria-label="Now Active Tasks">
-        <div className="deck-section-header">
-          <div className="deck-section-title-wrap">
+      <div className="deck-section-header">
+        <div className="deck-section-title-wrap">
           <span className="deck-section-title">NOW</span>
         </div>
         <span className="deck-section-count">{countLabel}</span>
@@ -107,16 +355,47 @@ export const NowSection: React.FC<NowSectionProps> = ({ tasks, hasAnyTasks, onCr
                     <ChevronRight size={17} className="deck-expand-icon" />
                   )}
                 </div>
-                <TaskMenu status={task.task.status} onEdit={() => onEdit(task.task)} onStatus={(status) => onStatus(task.task.id, status)} />
+                <TaskMenu
+                  status={task.task.status}
+                  onEdit={() => onEdit(task.task)}
+                  onStatus={(status) => onStatus(task.task.id, status)}
+                />
               </div>
 
               {isExpanded && (
                 <div className="deck-now-details">
-                  <StageGroup label="已完成" icon={<CheckCircle2 size={13} className="deck-stage-icon completed" />} status="completed" taskId={task.task.id} items={completedItems} onCreate={onProgressCreate} onUpdate={onProgressUpdate} onDelete={onProgressDelete} />
+                  <StageGroup
+                    label="已完成"
+                    icon={<CheckCircle2 size={13} className="deck-stage-icon completed" />}
+                    status="completed"
+                    taskId={task.task.id}
+                    items={completedItems}
+                    onCreate={onProgressCreate}
+                    onUpdate={onProgressUpdate}
+                    onDelete={onProgressDelete}
+                  />
 
-                  <StageGroup label="正在推进" icon={<Clock size={13} className="deck-stage-icon in-progress" />} status="active" taskId={task.task.id} items={inProgressItems} onCreate={onProgressCreate} onUpdate={onProgressUpdate} onDelete={onProgressDelete} />
+                  <StageGroup
+                    label="正在推进"
+                    icon={<Clock size={13} className="deck-stage-icon in-progress" />}
+                    status="active"
+                    taskId={task.task.id}
+                    items={inProgressItems}
+                    onCreate={onProgressCreate}
+                    onUpdate={onProgressUpdate}
+                    onDelete={onProgressDelete}
+                  />
 
-                  <StageGroup label="未来" icon={<Circle size={13} className="deck-stage-icon upcoming" />} status="future" taskId={task.task.id} items={upcomingItems} onCreate={onProgressCreate} onUpdate={onProgressUpdate} onDelete={onProgressDelete} />
+                  <StageGroup
+                    label="未来"
+                    icon={<Circle size={13} className="deck-stage-icon upcoming" />}
+                    status="future"
+                    taskId={task.task.id}
+                    items={upcomingItems}
+                    onCreate={onProgressCreate}
+                    onUpdate={onProgressUpdate}
+                    onDelete={onProgressDelete}
+                  />
 
                   {task.task.nextAction && (
                     <div className="deck-next-action-box">
