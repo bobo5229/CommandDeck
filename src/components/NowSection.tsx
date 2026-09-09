@@ -51,9 +51,8 @@ export const NowSection: React.FC<NowSectionProps> = ({ tasks, onEdit, onStatus,
 
   return (
     <section className="deck-section deck-section-now" aria-label="Now Active Tasks">
-      <div className="deck-section-header">
-        <div className="deck-section-title-wrap">
-          <span className="deck-pulse-indicator" aria-hidden="true" />
+        <div className="deck-section-header">
+          <div className="deck-section-title-wrap">
           <span className="deck-section-title">NOW</span>
         </div>
         <span className="deck-section-count">{countLabel}</span>

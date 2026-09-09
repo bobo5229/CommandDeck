@@ -304,16 +304,6 @@ html, body {
   background: transparent;
 }
 
-/* Subtle NOW pulse indicator */
-.deck-pulse-indicator {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: var(--accent-primary);
-  display: inline-block;
-  box-shadow: 0 0 0 2px var(--accent-soft-border);
-}
-
 /* --------------------------------------------------------------------------
    GOALS Section (Compact pills)
    -------------------------------------------------------------------------- */
