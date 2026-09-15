@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { MoreHorizontal } from "lucide-react";
 import type { TaskStatus } from "../types/deck";
+import { useMenuInteraction } from "./useMenuInteraction";
 
 export const TaskMenu: React.FC<{
   status: TaskStatus;
@@ -11,27 +12,14 @@ export const TaskMenu: React.FC<{
 }> = ({ status, canEdit = true, activeOnly = false, onEdit, onStatus }) => {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    };
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [open]);
+  const {
+    containerRef,
+    menuId,
+    menuRef,
+    triggerRef,
+    handleMenuBlur,
+    handleMenuKeyDown,
+  } = useMenuInteraction({ open, onClose: () => setOpen(false) });
 
   const change = async (next: TaskStatus) => {
     setBusy(true);
@@ -45,22 +33,32 @@ export const TaskMenu: React.FC<{
 
   return (
     <div
-      ref={menuRef}
+      ref={containerRef}
       className="deck-menu-wrap"
       onClick={(event) => event.stopPropagation()}
     >
       <button
+        ref={triggerRef}
         type="button"
         className={`deck-icon-btn deck-menu-trigger ${open ? "is-open" : ""}`}
-        onClick={() => setOpen(!open)}
+        onClick={() => setOpen((value) => !value)}
         aria-label="Task actions"
         aria-haspopup="menu"
         aria-expanded={open}
+        aria-controls={open ? menuId : undefined}
       >
         <MoreHorizontal size={16} />
       </button>
       {open && (
-        <div className="deck-menu" role="menu">
+        <div
+          ref={menuRef}
+          id={menuId}
+          className="deck-menu"
+          role="menu"
+          aria-label="Task actions"
+          onBlur={handleMenuBlur}
+          onKeyDown={handleMenuKeyDown}
+        >
           {canEdit && (
             <button
               type="button"

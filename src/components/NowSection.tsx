@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import {
   ChevronDown,
   ChevronRight,
@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { ProgressItem, ProgressItemStatus, TaskDetails } from "../types/deck";
 import { TaskMenu } from "./TaskMenu";
+import { useMenuInteraction } from "./useMenuInteraction";
 
 interface NowSectionProps {
   tasks: TaskDetails[];
@@ -40,27 +41,6 @@ const StageGroup: React.FC<{
   const [menu, setMenu] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const menuWrapRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!menu) return;
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuWrapRef.current && !menuWrapRef.current.contains(event.target as Node)) {
-        setMenu(null);
-      }
-    };
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setMenu(null);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [menu]);
 
   const run = async (action: () => Promise<void>, done?: () => void) => {
     setBusy(true);
@@ -132,102 +112,20 @@ const StageGroup: React.FC<{
             ) : (
               <>
                 <span className="deck-progress-content">{item.content}</span>
-                <div
-                  ref={menu === item.id ? menuWrapRef : undefined}
-                  className="deck-menu-wrap"
-                  onClick={(event) => event.stopPropagation()}
-                >
-                  <button
-                    type="button"
-                    className={`deck-item-menu-btn ${menu === item.id ? "is-open" : ""}`}
-                    onClick={() => setMenu(menu === item.id ? null : item.id)}
-                    aria-label="Progress item actions"
-                    aria-haspopup="menu"
-                    aria-expanded={menu === item.id}
-                  >
-                    <MoreHorizontal size={14} />
-                  </button>
-                  {menu === item.id && (
-                    <div className="deck-menu" role="menu">
-                      <button
-                        type="button"
-                        role="menuitem"
-                        className="deck-menu-item"
-                        onClick={() => {
-                          setDraft(item.content);
-                          setEditing(item.id);
-                          setMenu(null);
-                        }}
-                      >
-                        Edit
-                      </button>
-                      {item.status !== "completed" && (
-                        <button
-                          type="button"
-                          role="menuitem"
-                          className="deck-menu-item"
-                          disabled={busy}
-                          onClick={() =>
-                            void run(
-                              () => onUpdate(item.id, item.content, "completed"),
-                              () => setMenu(null)
-                            )
-                          }
-                        >
-                          Mark completed
-                        </button>
-                      )}
-                      {item.status !== "active" && (
-                        <button
-                          type="button"
-                          role="menuitem"
-                          className="deck-menu-item"
-                          disabled={busy}
-                          onClick={() =>
-                            void run(
-                              () => onUpdate(item.id, item.content, "active"),
-                              () => setMenu(null)
-                            )
-                          }
-                        >
-                          Mark active
-                        </button>
-                      )}
-                      {item.status !== "future" && (
-                        <button
-                          type="button"
-                          role="menuitem"
-                          className="deck-menu-item"
-                          disabled={busy}
-                          onClick={() =>
-                            void run(
-                              () => onUpdate(item.id, item.content, "future"),
-                              () => setMenu(null)
-                            )
-                          }
-                        >
-                          Move to future
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        role="menuitem"
-                        className="deck-menu-item deck-menu-item--destructive"
-                        disabled={busy}
-                        onClick={() => {
-                          if (window.confirm("Delete this progress item?")) {
-                            void run(
-                              () => onDelete(item.id),
-                              () => setMenu(null)
-                            );
-                          }
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  )}
-                </div>
+                <ProgressItemMenu
+                  item={item}
+                  open={menu === item.id}
+                  onOpen={() => setMenu(item.id)}
+                  onClose={() => setMenu(null)}
+                  onEdit={() => {
+                    setDraft(item.content);
+                    setEditing(item.id);
+                  }}
+                  busy={busy}
+                  onUpdate={onUpdate}
+                  onDelete={onDelete}
+                  run={run}
+                />
               </>
             )}
           </li>
@@ -268,6 +166,132 @@ const StageGroup: React.FC<{
         </div>
       )}
       {error && <p className="deck-form-error">{error}</p>}
+    </div>
+  );
+};
+
+const ProgressItemMenu: React.FC<{
+  item: ProgressItem;
+  open: boolean;
+  onOpen: () => void;
+  onClose: () => void;
+  onEdit: () => void;
+  busy: boolean;
+  onUpdate: NowSectionProps["onProgressUpdate"];
+  onDelete: NowSectionProps["onProgressDelete"];
+  run: (action: () => Promise<void>, done?: () => void) => Promise<void>;
+}> = ({ item, open, onOpen, onClose, onEdit, busy, onUpdate, onDelete, run }) => {
+  const {
+    containerRef,
+    menuId,
+    menuRef,
+    triggerRef,
+    handleMenuBlur,
+    handleMenuKeyDown,
+  } = useMenuInteraction({ open, onClose });
+
+  return (
+    <div
+      ref={containerRef}
+      className="deck-menu-wrap"
+      onClick={(event) => event.stopPropagation()}
+    >
+      <button
+        ref={triggerRef}
+        type="button"
+        className={`deck-item-menu-btn ${open ? "is-open" : ""}`}
+        onClick={() => (open ? onClose() : onOpen())}
+        aria-label="Progress item actions"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-controls={open ? menuId : undefined}
+      >
+        <MoreHorizontal size={14} />
+      </button>
+      {open && (
+        <div
+          ref={menuRef}
+          id={menuId}
+          className="deck-menu"
+          role="menu"
+          aria-label="Progress item actions"
+          onBlur={handleMenuBlur}
+          onKeyDown={handleMenuKeyDown}
+        >
+          <button
+            type="button"
+            role="menuitem"
+            className="deck-menu-item"
+            onClick={() => {
+              onEdit();
+              onClose();
+            }}
+          >
+            Edit
+          </button>
+          {item.status !== "completed" && (
+            <button
+              type="button"
+              role="menuitem"
+              className="deck-menu-item"
+              disabled={busy}
+              onClick={() =>
+                void run(
+                  () => onUpdate(item.id, item.content, "completed"),
+                  onClose,
+                )
+              }
+            >
+              Mark completed
+            </button>
+          )}
+          {item.status !== "active" && (
+            <button
+              type="button"
+              role="menuitem"
+              className="deck-menu-item"
+              disabled={busy}
+              onClick={() =>
+                void run(
+                  () => onUpdate(item.id, item.content, "active"),
+                  onClose,
+                )
+              }
+            >
+              Mark active
+            </button>
+          )}
+          {item.status !== "future" && (
+            <button
+              type="button"
+              role="menuitem"
+              className="deck-menu-item"
+              disabled={busy}
+              onClick={() =>
+                void run(
+                  () => onUpdate(item.id, item.content, "future"),
+                  onClose,
+                )
+              }
+            >
+              Move to future
+            </button>
+          )}
+          <button
+            type="button"
+            role="menuitem"
+            className="deck-menu-item deck-menu-item--destructive"
+            disabled={busy}
+            onClick={() => {
+              if (window.confirm("Delete this progress item?")) {
+                void run(() => onDelete(item.id), onClose);
+              }
+            }}
+          >
+            Delete
+          </button>
+        </div>
+      )}
     </div>
   );
 };
