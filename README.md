@@ -19,6 +19,8 @@ npm install
 npm run dev          # 仅启动 Vite 前端
 npm run tauri dev    # 启动桌面应用
 npm run build        # TypeScript 检查并构建前端产物
+npm test             # 运行一次自动化测试
+npm run test:watch   # 监听文件并持续运行测试
 ```
 
 开发演示数据默认关闭。启动前设置 `VITE_COMMANDDECK_SEED=1`，且本地数据库为空时会写入一组 CommandDeck 示例任务。

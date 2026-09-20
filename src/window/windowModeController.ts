@@ -10,7 +10,7 @@ import type { UnlistenFn } from "@tauri-apps/api/event";
 
 export type WindowMode = "normal" | "pinned" | "overlay";
 
-interface WindowGeometry {
+export interface WindowGeometry {
   monitorName: string | null;
   offsetX: number;
   offsetY: number;
@@ -18,7 +18,7 @@ interface WindowGeometry {
   height: number;
 }
 
-interface WindowPreferences {
+export interface WindowPreferences {
   version: 1;
   mode: WindowMode;
   fullMode: Exclude<WindowMode, "overlay">;
@@ -39,7 +39,7 @@ const MIN_WIDTH = 380;
 const MAX_WIDTH = 460;
 const MIN_HEIGHT = 500;
 
-const defaultPreferences = (): WindowPreferences => ({
+export const defaultWindowPreferences = (): WindowPreferences => ({
   version: 1,
   mode: "normal",
   fullMode: "normal",
@@ -56,12 +56,11 @@ function isGeometry(value: unknown): value is WindowGeometry {
     && [geometry.offsetX, geometry.offsetY, geometry.width, geometry.height].every((item) => typeof item === "number" && Number.isFinite(item));
 }
 
-function readPreferences(): WindowPreferences {
+export function parseWindowPreferences(raw: string | null): WindowPreferences {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultPreferences();
+    if (!raw) return defaultWindowPreferences();
     const parsed = JSON.parse(raw) as Partial<WindowPreferences>;
-    if (parsed.version !== 1 || !isWindowMode(parsed.mode)) return defaultPreferences();
+    if (parsed.version !== 1 || !isWindowMode(parsed.mode)) return defaultWindowPreferences();
     const fullMode = parsed.fullMode === "pinned" ? "pinned" : "normal";
     return {
       version: 1,
@@ -71,15 +70,19 @@ function readPreferences(): WindowPreferences {
       ...(isGeometry(parsed.overlayGeometry) ? { overlayGeometry: parsed.overlayGeometry } : {}),
     };
   } catch {
-    return defaultPreferences();
+    return defaultWindowPreferences();
   }
+}
+
+function readPreferences(): WindowPreferences {
+  return parseWindowPreferences(localStorage.getItem(STORAGE_KEY));
 }
 
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(Math.max(value, minimum), maximum);
 }
 
-function monitorForWindow(monitors: Monitor[], position: PhysicalPosition, size: PhysicalSize): Monitor | undefined {
+export function monitorForWindow(monitors: Monitor[], position: { x: number; y: number }, size: { width: number; height: number }): Monitor | undefined {
   const centerX = position.x + size.width / 2;
   const centerY = position.y + size.height / 2;
   return monitors.find((monitor) => {
@@ -91,8 +94,42 @@ function monitorForWindow(monitors: Monitor[], position: PhysicalPosition, size:
   });
 }
 
+export function nextPinMode(mode: WindowMode): WindowMode {
+  if (mode === "overlay") return mode;
+  return mode === "pinned" ? "normal" : "pinned";
+}
+
+export function modeAfterOverlay(fullMode: WindowPreferences["fullMode"]): WindowPreferences["fullMode"] {
+  return fullMode === "pinned" ? "pinned" : "normal";
+}
+
+export function resolveWindowBounds(
+  geometry: WindowGeometry,
+  monitors: Monitor[],
+  fallbackMonitor: Monitor | null,
+): { position: { x: number; y: number }; size: { width: number; height: number }; monitor: Monitor } {
+  const monitor = monitors.find((candidate) => candidate.name === geometry.monitorName)
+    ?? fallbackMonitor
+    ?? monitors[0];
+  if (!monitor) throw new Error("No monitor is available for restoring the CommandDeck window.");
+
+  const scale = monitor.scaleFactor;
+  const workArea = monitor.workArea;
+  const maxLogicalWidth = workArea.size.width / scale;
+  const maxLogicalHeight = workArea.size.height / scale;
+  const logicalWidth = clamp(geometry.width, Math.min(MIN_WIDTH, maxLogicalWidth), Math.min(MAX_WIDTH, maxLogicalWidth));
+  const logicalHeight = clamp(geometry.height, Math.min(MIN_HEIGHT, maxLogicalHeight), maxLogicalHeight);
+  const width = Math.round(logicalWidth * scale);
+  const height = Math.round(logicalHeight * scale);
+  const desiredX = workArea.position.x + Math.round(geometry.offsetX * scale);
+  const desiredY = workArea.position.y + Math.round(geometry.offsetY * scale);
+  const x = clamp(desiredX, workArea.position.x, workArea.position.x + workArea.size.width - width);
+  const y = clamp(desiredY, workArea.position.y, workArea.position.y + workArea.size.height - height);
+
+  return { position: { x, y }, size: { width, height }, monitor };
+}
+
 class WindowModeController {
-  private readonly appWindow = getCurrentWindow();
   private preferences = readPreferences();
   private state: WindowModeState = { mode: this.preferences.mode, busy: true, error: null };
   private listeners = new Set<() => void>();
@@ -100,6 +137,10 @@ class WindowModeController {
   private unlisteners: UnlistenFn[] = [];
   private captureTimer?: number;
   private transitioning = false;
+
+  private get appWindow() {
+    return getCurrentWindow();
+  }
 
   getSnapshot = (): WindowModeState => this.state;
 
@@ -187,28 +228,9 @@ class WindowModeController {
   private async restoreGeometry(geometry: WindowGeometry): Promise<void> {
     const monitors = await availableMonitors();
     const fallbackMonitor = await primaryMonitor();
-    const monitor = monitors.find((candidate) => candidate.name === geometry.monitorName)
-      ?? fallbackMonitor
-      ?? monitors[0];
-    if (!monitor) {
-      throw new Error("No monitor is available for restoring the CommandDeck window.");
-    }
-
-    const scale = monitor.scaleFactor;
-    const workArea = monitor.workArea;
-    const maxLogicalWidth = workArea.size.width / scale;
-    const maxLogicalHeight = workArea.size.height / scale;
-    const logicalWidth = clamp(geometry.width, Math.min(MIN_WIDTH, maxLogicalWidth), Math.min(MAX_WIDTH, maxLogicalWidth));
-    const logicalHeight = clamp(geometry.height, Math.min(MIN_HEIGHT, maxLogicalHeight), maxLogicalHeight);
-    const width = Math.round(logicalWidth * scale);
-    const height = Math.round(logicalHeight * scale);
-    const desiredX = workArea.position.x + Math.round(geometry.offsetX * scale);
-    const desiredY = workArea.position.y + Math.round(geometry.offsetY * scale);
-    const x = clamp(desiredX, workArea.position.x, workArea.position.x + workArea.size.width - width);
-    const y = clamp(desiredY, workArea.position.y, workArea.position.y + workArea.size.height - height);
-
-    await this.appWindow.setSize(new PhysicalSize(width, height));
-    await this.appWindow.setPosition(new PhysicalPosition(x, y));
+    const bounds = resolveWindowBounds(geometry, monitors, fallbackMonitor);
+    await this.appWindow.setSize(new PhysicalSize(bounds.size.width, bounds.size.height));
+    await this.appWindow.setPosition(new PhysicalPosition(bounds.position.x, bounds.position.y));
   }
 
   private async captureCurrentSlot(): Promise<void> {
@@ -237,7 +259,8 @@ class WindowModeController {
   togglePin = async (): Promise<void> => {
     if (this.preferences.mode === "overlay") return;
     await this.run(async () => {
-      const nextMode: WindowMode = this.preferences.mode === "pinned" ? "normal" : "pinned";
+      const nextMode = nextPinMode(this.preferences.mode);
+      if (nextMode === "overlay") return;
       await this.appWindow.setAlwaysOnTop(nextMode === "pinned");
       this.preferences.mode = nextMode;
       this.preferences.fullMode = nextMode;
@@ -252,7 +275,7 @@ class WindowModeController {
         const currentGeometry = await this.captureGeometry();
         if (this.preferences.mode === "overlay") {
           this.preferences.overlayGeometry = currentGeometry;
-          const nextMode = this.preferences.fullMode;
+          const nextMode = modeAfterOverlay(this.preferences.fullMode);
           if (this.preferences.fullGeometry) await this.restoreGeometry(this.preferences.fullGeometry);
           await this.appWindow.setAlwaysOnTop(nextMode === "pinned");
           this.preferences.mode = nextMode;
