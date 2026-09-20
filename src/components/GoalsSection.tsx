@@ -4,17 +4,18 @@ import { Goal } from "../types/deck";
 
 interface GoalsSectionProps {
   goals: Goal[];
+  onManage: () => void;
 }
 
-export const GoalsSection: React.FC<GoalsSectionProps> = ({ goals }) => {
+export const GoalsSection: React.FC<GoalsSectionProps> = ({ goals, onManage }) => {
   const countLabel = `${goals.length} ${goals.length === 1 ? "goal" : "goals"}`;
 
   return (
     <section className="deck-section deck-section-goals" aria-label="Goals">
-      <div className="deck-section-header">
+      <button type="button" className="deck-section-header deck-goals-manage-trigger" onClick={onManage} aria-label="Manage goals">
         <span className="deck-section-title">GOALS</span>
         <span className="deck-section-count">{countLabel}<ChevronRight size={14} aria-hidden="true" /></span>
-      </div>
+      </button>
       <div className="deck-goals-list">
         {goals.length === 0 && <p className="deck-empty-state">暂无进行中的 Goal</p>}
         {goals.map((goal) => (

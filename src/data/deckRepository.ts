@@ -48,6 +48,11 @@ export async function listActiveGoals(): Promise<Goal[]> {
     "SELECT id, title, status, created_at, updated_at FROM goals WHERE status = $1 ORDER BY updated_at DESC", ["active"]);
   return rows.map(toGoal);
 }
+export async function listAllGoals(): Promise<Goal[]> {
+  const rows = await (await getDatabase()).select<GoalRow[]>(
+    "SELECT id, title, status, created_at, updated_at FROM goals ORDER BY updated_at DESC");
+  return rows.map(toGoal);
+}
 export async function listSelectableGoals(): Promise<Goal[]> {
   const rows = await (await getDatabase()).select<GoalRow[]>(
     "SELECT id, title, status, created_at, updated_at FROM goals WHERE status IN ($1, $2) ORDER BY updated_at DESC", ["active", "future"]);
@@ -83,6 +88,13 @@ export async function updateGoal(id: string, title: string): Promise<void> {
 }
 export async function changeGoalStatus(id: string, status: GoalStatus): Promise<void> {
   await (await getDatabase()).execute("UPDATE goals SET status = $1, updated_at = $2 WHERE id = $3", [status, timestamp(), id]);
+}
+export async function countOpenTasksForGoal(goalId: string): Promise<number> {
+  const rows = await (await getDatabase()).select<Array<{ task_count: number }>>(
+    "SELECT COUNT(*) AS task_count FROM tasks WHERE goal_id = $1 AND status IN ($2, $3)",
+    [goalId, "active", "future"],
+  );
+  return Number(rows[0]?.task_count ?? 0);
 }
 
 export async function createTask(input: CreateTaskInput): Promise<Task> {

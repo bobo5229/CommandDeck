@@ -20,6 +20,7 @@ export const TaskEditorModal: React.FC<Props> = ({ task, goals, onClose, onSave,
   const [showGoalCreate, setShowGoalCreate] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const availableGoals = goals.filter((goal) => goal.status === "active" || goal.status === "future" || goal.id === task?.goalId);
 
   useEffect(() => {
     const handler = (event: KeyboardEvent) => event.key === "Escape" && onClose();
@@ -91,7 +92,11 @@ export const TaskEditorModal: React.FC<Props> = ({ task, goals, onClose, onSave,
             <span className="deck-select-control">
               <select value={goalId} onChange={(event) => setGoalId(event.target.value)} disabled={saving}>
                 <option value="">No Goal</option>
-                {goals.map((goal) => <option key={goal.id} value={goal.id}>{goal.title}</option>)}
+                {availableGoals.map((goal) => (
+                  <option key={goal.id} value={goal.id} disabled={goal.status === "completed" || goal.status === "archived"}>
+                    {goal.title}{goal.status === "completed" || goal.status === "archived" ? ` (${goal.status})` : ""}
+                  </option>
+                ))}
               </select>
               <ChevronDown size={15} aria-hidden="true" />
             </span>
