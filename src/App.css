@@ -126,6 +126,7 @@ html, body {
    Header
    -------------------------------------------------------------------------- */
 .deck-header {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -184,6 +185,22 @@ html, body {
 
 .deck-icon-btn:active {
   background-color: var(--bg-active);
+}
+
+.deck-icon-btn.is-active {
+  color: var(--accent-text);
+  background-color: var(--accent-soft-bg);
+  box-shadow: inset 0 0 0 1px var(--accent-soft-border);
+}
+
+.deck-icon-btn:disabled {
+  color: var(--text-disabled);
+  cursor: not-allowed;
+}
+
+.deck-icon-btn.is-active:disabled {
+  color: var(--accent-text);
+  opacity: .7;
 }
 
 .deck-close-btn:hover {
@@ -408,6 +425,22 @@ html, body {
   font: inherit;
   text-align: left;
   cursor: pointer;
+}
+
+.deck-window-error {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 12px;
+  z-index: 20;
+  max-width: 250px;
+  padding: 7px 9px;
+  border: 1px solid var(--accent-soft-border);
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft-bg);
+  box-shadow: var(--shadow-sm);
+  color: var(--accent-text);
+  font-size: 11px;
+  line-height: 1.35;
 }
 
 .deck-goals-manage-trigger:hover .deck-section-title,
